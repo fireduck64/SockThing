@@ -46,8 +46,8 @@ public class StratumConnection
         open=true;
 
         last_network_action=new AtomicLong(System.nanoTime());
-
-
+    
+        //Get from user session for now.  Might do something fancy with resume later.
         extranonce1=UserSessionData.getExtranonce1();
 
         new OutThread().start();

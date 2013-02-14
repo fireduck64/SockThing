@@ -52,7 +52,11 @@ public class Coinbase
         //The first entries here get replaced with data.
         //They are just being put in the string so that there are some place holders for
         //The data to go.
-        String script = "BLKH" + "EXT1" + "EXT2" + "RNDN" + "/HHTT/Stratum";
+        // BLKH - Block height
+        // EXT1+2 extranonce 1 and 2 from stratum
+        // RNDN - Random number to make each coinbase different, so that workers
+        //        can't submit duplicates to other jobs if the EXT1 is always the same
+        String script = "BLKH" + "EXT1" + "EXT2" + "RNDN" + "/SockThing/Stratum";
         script_bytes= script.getBytes();
 
 

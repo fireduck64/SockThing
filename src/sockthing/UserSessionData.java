@@ -39,6 +39,11 @@ public class UserSessionData
         }
     }
 
+    /**
+     * Always use the same one to make reconnects work right
+     * Instead we get protection from using a random number in each coinbase
+     * which is unique to each job
+     */
     public static byte[] getExtranonce1()
     {
         return "SOCK".getBytes();
