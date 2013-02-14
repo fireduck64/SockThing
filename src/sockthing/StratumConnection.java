@@ -47,10 +47,8 @@ public class StratumConnection
 
         last_network_action=new AtomicLong(System.nanoTime());
 
-        rnd = new Random();
-        extranonce1=new byte[4];
-        rnd.nextBytes(extranonce1);
 
+        extranonce1=UserSessionData.getExtranonce1();
 
         new OutThread().start();
         new InThread().start();

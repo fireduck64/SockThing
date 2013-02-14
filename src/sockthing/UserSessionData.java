@@ -6,18 +6,16 @@ import java.util.Random;
 public class UserSessionData
 {
     
-    private LRUCache<String, JobInfo> open_jobs = new LRUCache<String, JobInfo>(20);
+    /**
+     * Hopefully the user is submitting shares and this keeping the interesting 
+     * jobs in memory.
+     */
+    private LRUCache<String, JobInfo> open_jobs = new LRUCache<String, JobInfo>(25);
 
     private AtomicLong next_job_id = new AtomicLong(0);
-    private byte[] extranonce1;
 
     public UserSessionData()
     {
-        extranonce1=new byte[4];
-
-        Random rnd = new Random();
-        rnd.nextBytes(extranonce1);
-
     }
 
     public JobInfo getJobInfo(String job_id)
@@ -41,9 +39,9 @@ public class UserSessionData
         }
     }
 
-    public byte[] getExtranonce1()
+    public static byte[] getExtranonce1()
     {
-        return extranonce1;
+        return "SOCK".getBytes();
     }
 
 }

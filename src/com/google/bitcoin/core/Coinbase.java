@@ -12,6 +12,8 @@ import org.apache.commons.codec.binary.Hex;
 
 import java.nio.ByteBuffer;
 
+import java.util.Random;
+
 /**
  * Creates a stratum compatible coinbase transaction
  */
@@ -27,6 +29,11 @@ public class Coinbase
     NetworkParameters params;
     BigInteger value;
    
+    public static final int BLOCK_HEIGHT_OFF=0;
+    public static final int EXTRA1_OFF=4;
+    public static final int EXTRA2_OFF=8;
+    public static final int RANDOM_OFF=12;
+
 
     public Coinbase(NetworkParameters params, int block_height, Address pay_to_addr, BigInteger value, byte[] extranonce1)
     {
@@ -45,14 +52,16 @@ public class Coinbase
         //The first entries here get replaced with data.
         //They are just being put in the string so that there are some place holders for
         //The data to go.
-        String script = "BLKH" + "EXT1" + "EXT2" + "/HHTT/Stratum";
+        String script = "BLKH" + "EXT1" + "EXT2" + "RNDN" + "/HHTT/Stratum";
         script_bytes= script.getBytes();
+
 
         for(int i=0; i<4; i++)
         {
-            script_bytes[i] = height_array[i];
+            script_bytes[i+BLOCK_HEIGHT_OFF] = height_array[i];
         }
 
+        //Terrible endian hack
         script_bytes[1]=height_array[3];
         script_bytes[3]=height_array[1];
 
@@ -60,7 +69,15 @@ public class Coinbase
                 
         for(int i=0; i<4; i++)
         {
-            script_bytes[i+4] = extranonce1[i];
+            script_bytes[i+EXTRA1_OFF ] = extranonce1[i];
+        }
+
+        byte[] rand = new byte[4];
+        Random rnd = new Random();
+        rnd.nextBytes(rand);
+        for(int i=0; i<4; i++)
+        {
+            script_bytes[i+RANDOM_OFF]=rand[i];
         }
         //System.out.println("Script bytes: " + script.length());
         //System.out.println("Script: " + Hex.encodeHexString(script_bytes));
@@ -89,13 +106,15 @@ public class Coinbase
     {
         for(int i=0; i<4; i++)
         {
-            script_bytes[i+8] = extranonce2[i];
+            script_bytes[i+EXTRA2_OFF] = extranonce2[i];
         }
     }
 
 
     public byte[] getCoinbase1()
     {
+        //This contains our standard 42 byte transaction header
+        //then 4 bytes of block height for block v2
         int cb1_size=42+4;
         byte[] buff = new byte[42+4];
 
@@ -109,6 +128,8 @@ public class Coinbase
 
     public byte[] getCoinbase2()
     {
+        //So coinbase1 size - extranonce(1+8)
+
         int sz = tx_data.length - 42 - 4 - 8;
         byte[] buff=new byte[sz];
 
