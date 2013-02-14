@@ -6,20 +6,14 @@ create table shares
   our_result varchar(16),
   upstream_result varchar(16),
   reason varchar(64),
-  solution text,
   difficulty double,
-  btc double,
   time timestamp default now(),
   hash varchar(64),
-  block_notify tinyint
 ) engine innodb;
 
-create index shares_user_good_idx_2 on shares(username, our_result, difficulty, btc);
-create index shares_time_idx_2 on shares(username, time, our_result, difficulty, btc);
+create index shares_time_idx_2 on shares(username, time, our_result, difficulty);
 create index share_hash_idx on shares(hash);
-create index share_work_idx on shares(solution(256));
 create index shares_up_result on shares(upstream_result);
-create index shares_our_btc_idx on shares(btc, our_result);
 create index shares_time_idx_3 on shares(time);
 
 
