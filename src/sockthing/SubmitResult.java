@@ -7,5 +7,6 @@ public class SubmitResult
     public String our_result="N";
     public String upstream_result;
     public String reason;
+    public String client_version;
 
 }

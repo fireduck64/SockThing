@@ -36,6 +36,9 @@ public class StratumConnection
 
     private LinkedBlockingQueue<JSONObject> out_queue = new LinkedBlockingQueue<JSONObject>();
     private Random rnd;
+    
+    private long get_client_id=-1;
+    private String client_version;
 
     public StratumConnection(StratumServer server, Socket sock, String connection_id)
     {
@@ -202,8 +205,14 @@ public class StratumConnection
     private void processInMessage(JSONObject msg)
         throws Exception
     {
-        String method = msg.getString("method");
         long id = msg.getLong("id");
+        if (id == get_client_id)
+        {
+            client_version = msg.getString("result");
+            return;
+        }
+        
+        String method = msg.getString("method");
         if (method.equals("mining.subscribe"))
         {
             JSONObject reply = new JSONObject();
@@ -246,6 +255,7 @@ public class StratumConnection
                 user = pu;
                 sendMessage(reply);
                 sendDifficulty();
+                sendGetClient();
                 user_session_data = server.getUserSessionData(pu);
                 sendRealJob(server.getCurrentBlockTemplate(),false);
             }
@@ -268,6 +278,8 @@ public class StratumConnection
             else
             {
                 SubmitResult res = new SubmitResult();
+                res.client_version = client_version;
+
                 ji.validateSubmit(params,res);
                 JSONObject reply = new JSONObject();
                 reply.put("id", id);
@@ -291,8 +303,6 @@ public class StratumConnection
                 sendMessage(reply);
             }
 
-
-
         }
     }
 
@@ -308,6 +318,21 @@ public class StratumConnection
         msg.put("params", lst);
 
         sendMessage(msg);
+    }
+
+    private void sendGetClient()
+        throws Exception
+    {
+        long id = getNextRequestId();
+
+        get_client_id = id;
+
+        JSONObject msg = new JSONObject();
+        msg.put("id", id);
+        msg.put("method","client.get_version");
+
+        sendMessage(msg);
+        
     }
 
 

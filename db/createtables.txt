@@ -2,6 +2,7 @@
 create table shares
 (
   rem_host varchar(128),
+  client varchar(128),
   username varchar(128),
   our_result varchar(16),
   upstream_result varchar(16),

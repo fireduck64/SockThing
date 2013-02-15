@@ -35,7 +35,7 @@ public class DBShareSaver implements ShareSaver
         {
             conn = DB.openConnection("share_db");
 
-            PreparedStatement ps = conn.prepareStatement("insert into shares (rem_host, username, our_result, upstream_result, reason, difficulty, hash) values (?,?,?,?,?,?,?)");
+            PreparedStatement ps = conn.prepareStatement("insert into shares (rem_host, username, our_result, upstream_result, reason, difficulty, hash, client) values (?,?,?,?,?,?,?,?)");
 
             ps.setString(1, source);
             ps.setString(2, pu.getName());
@@ -52,7 +52,7 @@ public class DBShareSaver implements ShareSaver
             {
                 ps.setString(7, null);
             }
-
+            ps.setString(8, submit_result.client_version);
 
             ps.execute();
             ps.close();
