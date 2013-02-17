@@ -33,7 +33,7 @@ public class JobInfo
 
     private Coinbase coinbase;
 
-    public JobInfo(NetworkParameters network_params, StratumServer server, PoolUser pool_user, Address pay_to_addr, String job_id, JSONObject block_template, byte[] extranonce1)
+    public JobInfo(StratumServer server, PoolUser pool_user, String job_id, JSONObject block_template, byte[] extranonce1)
         throws org.json.JSONException
     {
         this.pool_user = pool_user;
@@ -49,15 +49,30 @@ public class JobInfo
 
         submits = new HashSet<String>();
 
-        coinbase = new Coinbase(network_params, height, pay_to_addr, BigInteger.valueOf(value), extranonce1);
+
+        coinbase = new Coinbase(server, pool_user, height, BigInteger.valueOf(value), getFeeTotal(), extranonce1);
         coinbase.genTx();
 
         share_target = DiffMath.getTargetForDifficulty(pool_user.getDifficulty());
 
     }
 
+    private BigInteger getFeeTotal()
+        throws org.json.JSONException
+    {
+        long fee_total = 0;
+        JSONArray transactions = block_template.getJSONArray("transactions");
 
+        for(int i=0; i<transactions.length(); i++)
+        {
+            JSONObject tx = transactions.getJSONObject(i);
 
+            long fee = tx.getLong("fee");
+            fee_total += fee;
+        }
+
+        return BigInteger.valueOf(fee_total);
+    }
 
     public JSONObject getMiningNotifyMessage(boolean clean)
         throws org.json.JSONException

@@ -27,6 +27,7 @@ public class StratumConnection
     private volatile boolean open;
     private volatile boolean mining_subscribe=false;
     private PoolUser user;
+    private Config config;
    
     private byte[] extranonce1;
 
@@ -43,6 +44,7 @@ public class StratumConnection
     public StratumConnection(StratumServer server, Socket sock, String connection_id)
     {
         this.server = server;
+        this.config = server.getConfig();
         this.sock = sock;
         this.connection_id = connection_id;
 
@@ -105,7 +107,7 @@ public class StratumConnection
 
         String job_id = user_session_data.getNextJobId();
 
-        JobInfo ji = new JobInfo(server.getNetworkParameters(), server, user, server.getPayToAddress(), job_id, block_template, extranonce1);
+        JobInfo ji = new JobInfo(server, user, job_id, block_template, extranonce1);
 
         user_session_data.saveJobInfo(job_id, ji);
 

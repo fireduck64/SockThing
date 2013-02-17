@@ -14,6 +14,11 @@ import java.nio.ByteBuffer;
 
 import java.util.Random;
 
+import sockthing.StratumServer;
+import sockthing.PoolUser;
+
+
+
 /**
  * Creates a stratum compatible coinbase transaction
  */
@@ -25,9 +30,10 @@ public class Coinbase
     byte[] script_bytes;
     byte[] extranonce1;
     byte[] extranonce2;
-    Address pay_to_addr;
-    NetworkParameters params;
     BigInteger value;
+    BigInteger fee_total;
+    StratumServer server;
+    PoolUser pool_user;
    
     public static final int BLOCK_HEIGHT_OFF=0;
     public static final int EXTRA1_OFF=4;
@@ -35,11 +41,12 @@ public class Coinbase
     public static final int RANDOM_OFF=12;
 
 
-    public Coinbase(NetworkParameters params, int block_height, Address pay_to_addr, BigInteger value, byte[] extranonce1)
+    public Coinbase(StratumServer server, PoolUser pool_user, int block_height, BigInteger value, BigInteger fee_total, byte[] extranonce1)
     {
-        this.params = params;
-        this.pay_to_addr = pay_to_addr;
+        this.server = server;
+        this.pool_user = pool_user;
         this.value = value;
+        this.fee_total = fee_total;
         this.extranonce1 = extranonce1;
         extranonce2 = new byte[4];
 
@@ -87,6 +94,11 @@ public class Coinbase
         //System.out.println("Script: " + Hex.encodeHexString(script_bytes));
 
         genTx();
+        /*System.out.println(tx);
+        for(TransactionOutput out : tx.getOutputs())
+        {
+            System.out.println("  " + out);
+        }*/
 
     }
 
@@ -96,9 +108,10 @@ public class Coinbase
      */
     public Transaction genTx()
     {
-        tx = new Transaction(params);
-        tx.addInput(new TransactionInput(params, tx, script_bytes));
-        tx.addOutput(value, pay_to_addr);
+        tx = new Transaction(server.getNetworkParameters());
+        tx.addInput(new TransactionInput(server.getNetworkParameters(), tx, script_bytes));
+
+        server.getOutputMonster().addOutputs(pool_user, tx, value, fee_total);
 
         tx_data = tx.bitcoinSerialize();
 
@@ -145,39 +158,4 @@ public class Coinbase
     }
 
 
-    public static void main(String args[]) throws Exception
-    {
-        NetworkParameters params = NetworkParameters.prodNet();
-        byte[] extra1=new byte[4];
-        for(int i=0; i<4; i++) extra1[i]=(byte)(i+1);
-
-        Coinbase cb = new Coinbase(params, 32010, new Address(params, "15vkb5XdTrZW1oKByjaqdTsUjdSri2uREN"), BigInteger.valueOf(2500000000L), extra1);
-
-        Transaction tx = cb.genTx();
-        System.out.println(tx.getHash());
-        System.out.println(tx);
-
-        tx = cb.genTx();
-        System.out.println(tx.getHash());
-        System.out.println(tx);
-
-        cb.setExtranonce2(extra1);
-        tx=cb.genTx();
-        System.out.println(tx.getHash());
-        System.out.println(tx);
-
-        for(TransactionOutput out : tx.getOutputs())
-        {
-            System.out.println("  out: " + out);
-        }
-
-        byte[] data = tx.bitcoinSerialize();
-        System.out.println(Hex.encodeHexString(data));
-        System.out.println(Hex.encodeHexString(cb.getCoinbase1()));
-        System.out.println(Hex.encodeHexString(cb.getCoinbase2()));
-
-
-
-
-    }
 }

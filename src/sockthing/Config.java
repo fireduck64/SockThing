@@ -3,6 +3,9 @@ package sockthing;
 import java.util.Properties;
 import java.io.FileInputStream;
 
+import java.util.StringTokenizer;
+import java.util.LinkedList;
+import java.util.List;
 
 public class Config
 {
@@ -32,5 +35,21 @@ public class Config
     {
         return Integer.parseInt(get(key));
     }
+
+    public List<String> getList(String key)
+    {
+        String big_str = get(key);
+
+        StringTokenizer stok = new StringTokenizer(big_str, ",");
+
+        LinkedList<String> lst = new LinkedList<String>();
+        while(stok.hasMoreTokens())
+        {
+            String node = stok.nextToken().trim();
+            lst.add(node);
+        }
+        return lst;
+    }
+    
 
 }

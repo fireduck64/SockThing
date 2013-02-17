@@ -6,10 +6,11 @@ import com.google.bitcoin.core.NetworkParameters;
 
 public class AddressDifficultyAuthHandler implements AuthHandler
 {
+    protected StratumServer server;
 
-    public AddressDifficultyAuthHandler(Config config)
+    public AddressDifficultyAuthHandler(StratumServer server)
     {
-        //We don't actually need anything
+        this.server = server;
     }
 
     /**
@@ -48,7 +49,7 @@ public class AddressDifficultyAuthHandler implements AuthHandler
     {
         try
         {
-            Address a = new Address(NetworkParameters.prodNet(), addr);
+            Address a = new Address(server.getNetworkParameters(), addr);
             return true;
         }
         catch(Exception e)

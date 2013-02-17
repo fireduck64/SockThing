@@ -25,9 +25,9 @@ public class StratumServer extends Thread
 
     private Config config;
     private AuthHandler auth_handler;
-    private Address pay_to_address;
     private NetworkParameters network_params;
     private ShareSaver share_saver;
+    private OutputMonster output_monster;
 
     private JSONObject cached_block_template;
     
@@ -55,6 +55,11 @@ public class StratumServer extends Thread
         return auth_handler;
     }
 
+    public Config getConfig()
+    {
+        return config;
+    }
+
     public void setShareSaver(ShareSaver share_saver)
     {
         this.share_saver = share_saver;
@@ -64,11 +69,15 @@ public class StratumServer extends Thread
         return share_saver;
     }
 
-    public void setPayToAddress(Address addr)
+    public void setOutputMonster(OutputMonster output_monster)
     {
-        this.pay_to_address =addr;
+        this.output_monster = output_monster;
     }
-    public Address getPayToAddress(){return pay_to_address;}
+    public OutputMonster getOutputMonster()
+    {
+        return output_monster;
+    }
+
     public NetworkParameters getNetworkParameters(){return network_params;}
 
     public void setNetworkParameters(NetworkParameters network_params)
@@ -278,9 +287,9 @@ public class StratumServer extends Thread
 
         StratumServer server = new StratumServer(conf);
 
-        server.setAuthHandler(new AddressDifficultyAuthHandler(conf));
+        server.setAuthHandler(new AddressDifficultyAuthHandler(server));
         server.setShareSaver(new DBShareSaver(conf));
-        //server.setPayToAddress(new Address(server.getNetworkParameters(),"mjo9y54EJthcxpZc4pLGHWvf4n8E3vaTrN"));
+
 
         String network = conf.get("network");
         if (network.equals("prodnet"))
@@ -290,9 +299,10 @@ public class StratumServer extends Thread
         else if (network.equals("testnet"))
         {
             server.setNetworkParameters(NetworkParameters.testNet3());
-
         }
-        server.setPayToAddress(new Address(server.getNetworkParameters(),conf.get("pay_to_address")));
+        
+        server.setOutputMonster(new OutputMonsterShareFees(conf, server.getNetworkParameters()));
+        
         server.start();
     }
 
