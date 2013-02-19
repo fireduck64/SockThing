@@ -20,6 +20,8 @@ import java.nio.ByteBuffer;
 
 public class StratumConnection
 {
+    public static final String UNIVERSAL_SESSION="UNIVERSAL_SESSION";
+
     private StratumServer server;
     private Socket sock;
     private String connection_id;
@@ -232,6 +234,7 @@ public class StratumConnection
             lst.put(lst2);
             lst.put(Hex.encodeHexString(extranonce1));
             lst.put(4);
+            lst.put(UNIVERSAL_SESSION);
             reply.put("result", lst);
 
             sendMessage(reply);
@@ -267,6 +270,28 @@ public class StratumConnection
                 sendRealJob(server.getCurrentBlockTemplate(),false);
             }
             
+        }
+        else if (method.equals("mining.resume"))
+        {
+            JSONArray params = msg.getJSONArray("params");
+            String session_id = params.getString(0);
+
+            JSONObject reply = new JSONObject();
+            reply.put("id", id);
+            // should be the same as mining.subscribe
+            if (!session_id.equals(UNIVERSAL_SESSION))
+            {
+                reply.put("error", "bad session id");
+                reply.put("result", false);
+                sendMessage(reply);
+            }
+            else
+            {
+                reply.put("result", true);
+                reply.put("error", JSONObject.NULL);
+                sendMessage(reply);
+                mining_subscribe=true;
+            }
         }
         else if (method.equals("mining.submit"))
         {
