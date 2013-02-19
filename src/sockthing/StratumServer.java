@@ -166,7 +166,7 @@ public class StratumServer extends Thread
 
     /**
      * 0 - not stale (current)
-     * 1 - stale
+     * 1 - slightly stale
      * 2 - really stale
      */
     public int checkStale(int next_block)
@@ -175,7 +175,7 @@ public class StratumServer extends Thread
         {
             return 0;
         }
-        if (next_block == current_block + 2)
+        if (next_block == current_block)
         {
             if (current_block_update_time + 10000 > System.currentTimeMillis())
             {
@@ -289,6 +289,7 @@ public class StratumServer extends Thread
 
         server.setAuthHandler(new AddressDifficultyAuthHandler(server));
         server.setShareSaver(new DBShareSaver(conf));
+        //server.setShareSaver(new ShareSaverMessaging(server, new DBShareSaver(conf)));
 
 
         String network = conf.get("network");
