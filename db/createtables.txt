@@ -9,12 +9,15 @@ create table shares
   reason varchar(64),
   difficulty double,
   time timestamp default now(),
-  hash varchar(64)
+  hash varchar(64),
+  unique_id varchar(64)
 ) engine innodb;
 
 create index shares_time_idx_2 on shares(username, time, our_result, difficulty);
 create index share_hash_idx on shares(hash);
 create index shares_up_result on shares(upstream_result);
 create index shares_time_idx_3 on shares(time);
+create unique index shares_unique_idx on shares(unique_id);
+
 
 

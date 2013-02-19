@@ -213,7 +213,12 @@ public class StratumConnection
             client_version = msg.getString("result");
             return;
         }
-        
+       
+        if (!msg.has("method"))
+        {
+            System.out.println("Unknown message: " + msg.toString());
+            return;
+        }
         String method = msg.getString("method");
         if (method.equals("mining.subscribe"))
         {

@@ -6,6 +6,10 @@ import org.apache.commons.codec.binary.Hex;
 import java.security.MessageDigest;
 
 import com.google.bitcoin.core.Sha256Hash;
+
+import java.security.MessageDigest;
+import java.math.BigInteger;
+
 public class HexUtil
 {
     public static String getIntAsHex(int n)
@@ -80,6 +84,37 @@ public class HexUtil
  
 
     }
-    
+
+    public static String sha256(String str)
+    {
+        try
+        {
+            byte[] p = str.getBytes();
+
+            MessageDigest sig=MessageDigest.getInstance("SHA-256");
+            sig.update(p, 0, p.length);
+
+            byte d[]=sig.digest();
+            return printBytesInHex(d);
+        }
+        catch(Exception e)
+        {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static String printBytesInHex(byte[] d)
+    {
+        StringBuffer s=new StringBuffer(d.length*2);
+        BigInteger bi=new BigInteger(1,d);
+        s.append(bi.toString(16));
+        while(s.length() < d.length*2)
+        {
+            s.insert(0, '0');
+        }
+        return s.toString();
+
+    }
+ 
 
 }

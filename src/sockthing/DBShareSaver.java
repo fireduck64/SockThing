@@ -26,7 +26,7 @@ public class DBShareSaver implements ShareSaver
 
     }
 
-    public void saveShare(PoolUser pu, JobInfo ji, SubmitResult submit_result, String source) throws ShareSaveException
+    public void saveShare(PoolUser pu, SubmitResult submit_result, String source, String unique_job_string) throws ShareSaveException
     {
         
         Connection conn = null;
@@ -35,7 +35,7 @@ public class DBShareSaver implements ShareSaver
         {
             conn = DB.openConnection("share_db");
 
-            PreparedStatement ps = conn.prepareStatement("insert into shares (rem_host, username, our_result, upstream_result, reason, difficulty, hash, client) values (?,?,?,?,?,?,?,?)");
+            PreparedStatement ps = conn.prepareStatement("insert into shares (rem_host, username, our_result, upstream_result, reason, difficulty, hash, client, unique_id) values (?,?,?,?,?,?,?,?,?)");
 
             ps.setString(1, source);
             ps.setString(2, pu.getName());
@@ -54,9 +54,14 @@ public class DBShareSaver implements ShareSaver
             }
             ps.setString(8, submit_result.client_version);
 
+            ps.setString(9, unique_job_string);
             ps.execute();
             ps.close();
             
+        }
+        catch(java.sql.SQLIntegrityConstraintViolationException e)
+        {
+            System.out.println("Duplicate save - calling good");
         }
         catch(java.sql.SQLException e)
         {

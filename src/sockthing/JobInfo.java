@@ -113,6 +113,8 @@ public class JobInfo
 
     public void validateSubmit(JSONArray params, SubmitResult submit_result)
     {
+        String unique_id = HexUtil.sha256(params.toString());
+
         try
         {
             validateSubmitInternal(params, submit_result);
@@ -128,7 +130,7 @@ public class JobInfo
         {
             try
             {
-                server.getShareSaver().saveShare(pool_user,this, submit_result, "stratum");
+                server.getShareSaver().saveShare(pool_user,submit_result, "stratum", unique_id);
             }
             catch(ShareSaveException e)
             {

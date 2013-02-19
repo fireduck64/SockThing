@@ -288,8 +288,8 @@ public class StratumServer extends Thread
         StratumServer server = new StratumServer(conf);
 
         server.setAuthHandler(new AddressDifficultyAuthHandler(server));
-        server.setShareSaver(new DBShareSaver(conf));
-        //server.setShareSaver(new ShareSaverMessaging(server, new DBShareSaver(conf)));
+        //server.setShareSaver(new DBShareSaver(conf));
+        server.setShareSaver(new ShareSaverMessaging(server, new DBShareSaver(conf)));
 
 
         String network = conf.get("network");

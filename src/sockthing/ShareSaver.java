@@ -8,7 +8,10 @@ import com.google.bitcoin.core.Sha256Hash;
  */
 public interface ShareSaver
 {
-    public void saveShare(PoolUser pu, JobInfo ji, SubmitResult submit_result, String source) throws ShareSaveException;
+    /**
+     * The unique_job_string is what this share unit will be deduped on.  It must be unique for each valid submit.
+     */
+    public void saveShare(PoolUser pu, SubmitResult submit_result, String source, String unique_job_string) throws ShareSaveException;
 
 }
 
