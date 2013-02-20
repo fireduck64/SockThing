@@ -20,7 +20,13 @@ import java.nio.ByteBuffer;
 
 public class StratumConnection
 {
-    public static final String UNIVERSAL_SESSION="UNIVERSAL_SESSION";
+
+    /** At least for now the job info is held in memory
+     * so generate a new session id on JVM restart since all the jobs
+     * from the old one are certainly gone.  Also, helps with switching nodes.
+     * This way, we reject resumes from other runs.
+     */
+    public static final String RUNTIME_SESSION=HexUtil.sha256("" + new Random().nextLong());
 
     private StratumServer server;
     private Socket sock;
@@ -234,7 +240,7 @@ public class StratumConnection
             lst.put(lst2);
             lst.put(Hex.encodeHexString(extranonce1));
             lst.put(4);
-            lst.put(UNIVERSAL_SESSION);
+            lst.put(RUNTIME_SESSION);
             reply.put("result", lst);
 
             sendMessage(reply);
@@ -279,7 +285,7 @@ public class StratumConnection
             JSONObject reply = new JSONObject();
             reply.put("id", id);
             // should be the same as mining.subscribe
-            if (!session_id.equals(UNIVERSAL_SESSION))
+            if (!session_id.equals(RUNTIME_SESSION))
             {
                 reply.put("error", "bad session id");
                 reply.put("result", false);
