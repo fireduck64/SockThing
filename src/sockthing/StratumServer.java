@@ -28,6 +28,9 @@ public class StratumServer extends Thread
     private NetworkParameters network_params;
     private ShareSaver share_saver;
     private OutputMonster output_monster;
+    private MetricsReporter metrics_reporter;
+
+    private String instance_id;
 
     private JSONObject cached_block_template;
     
@@ -55,9 +58,27 @@ public class StratumServer extends Thread
         return auth_handler;
     }
 
+    public void setMetricsReporter(MetricsReporter mr)
+    {
+        this.metrics_reporter = mr;
+    }
+    public MetricsReporter getMetricsReporter()
+    {
+        return metrics_reporter;
+    }
+
     public Config getConfig()
     {
         return config;
+    }
+
+    public String getInstanceId()
+    {
+        return instance_id;
+    }
+    public void setInstanceId(String instance_id)
+    {
+        this.instance_id = instance_id;
     }
 
     public void setShareSaver(ShareSaver share_saver)
@@ -121,7 +142,6 @@ public class StratumServer extends Thread
             throw new RuntimeException(e);
         }
 
-
     }
 
     public class TimeoutThread extends Thread
@@ -136,10 +156,12 @@ public class StratumServer extends Thread
             while(true)
             {   
                 LinkedList<Map.Entry<String, StratumConnection> > lst= new LinkedList<Map.Entry<String, StratumConnection> >();
+
                 synchronized(conn_map)
                 {
                     lst.addAll(conn_map.entrySet());
                 }
+                getMetricsReporter().metricCount("connections", lst.size());
 
                 for(Map.Entry<String, StratumConnection> me : lst)
                 {
@@ -283,9 +305,13 @@ public class StratumServer extends Thread
 
         conf.require("pay_to_address");
         conf.require("network");
+        conf.require("instance_id");
 
 
         StratumServer server = new StratumServer(conf);
+
+        server.setInstanceId(conf.get("instance_id"));
+        server.setMetricsReporter(new MetricsReporter(server));
 
         server.setAuthHandler(new AddressDifficultyAuthHandler(server));
         //server.setShareSaver(new DBShareSaver(conf));
@@ -319,6 +345,8 @@ public class StratumServer extends Thread
         c = bitcoin_rpc.sendPost(post).getJSONObject("result");
 
         cached_block_template=c;
+
+        getMetricsReporter().metricCount("getblocktemplate",1.0);
         return c;
 
     }
