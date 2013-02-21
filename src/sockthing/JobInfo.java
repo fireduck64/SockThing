@@ -130,7 +130,7 @@ public class JobInfo
         {
             try
             {
-                server.getShareSaver().saveShare(pool_user,submit_result, "stratum", unique_id);
+                server.getShareSaver().saveShare(pool_user,submit_result, "sockthing/" + server.getInstanceId(), unique_id);
             }
             catch(ShareSaveException e)
             {

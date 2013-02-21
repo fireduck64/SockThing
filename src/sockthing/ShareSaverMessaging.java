@@ -79,7 +79,7 @@ public class ShareSaverMessaging implements ShareSaver
             msg.put("user", pu.getName());
             msg.put("worker", pu.getWorkerName());
             msg.put("difficulty", pu.getDifficulty());
-            msg.put("source", "stratum");
+            msg.put("source", source);
             msg.put("our_result", submit_result.our_result);
             msg.put("upstream_result", submit_result.upstream_result);
             msg.put("reason", submit_result.reason);
