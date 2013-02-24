@@ -57,6 +57,12 @@ public class JobInfo
 
     }
 
+    public int getHeight()
+        throws org.json.JSONException
+    {
+        return block_template.getInt("height");
+    }
+
     private BigInteger getFeeTotal()
         throws org.json.JSONException
     {
@@ -164,7 +170,7 @@ public class JobInfo
             submits.add(submit_cannonical_string);
         }
 
-        int stale = server.checkStale(block_template.getInt("height"));
+        int stale = server.checkStale(getHeight());
         if (stale >= 2)
         {
             submit_result.our_result="N";

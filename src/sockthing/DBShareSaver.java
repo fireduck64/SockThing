@@ -37,11 +37,21 @@ public class DBShareSaver implements ShareSaver
 
             PreparedStatement ps = conn.prepareStatement("insert into shares (rem_host, username, our_result, upstream_result, reason, difficulty, hash, client, unique_id) values (?,?,?,?,?,?,?,?,?)");
 
+            String reason_str = null;
+            if (submit_result.reason != null)
+            {
+                reason_str = submit_result.reason;
+                if (reason_str.length() > 50)
+                {
+                    reason_str = reason_str.substring(0, 50);
+                }
+                System.out.println("Reason: " + reason_str);
+            }
             ps.setString(1, source);
             ps.setString(2, pu.getName());
             ps.setString(3, submit_result.our_result);
             ps.setString(4, submit_result.upstream_result);
-            ps.setString(5, submit_result.reason);
+            ps.setString(5, reason_str);
             ps.setDouble(6, pu.getDifficulty());
 
             if (submit_result.hash != null)

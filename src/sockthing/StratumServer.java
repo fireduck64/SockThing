@@ -5,6 +5,8 @@ import java.util.UUID;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+import java.util.TreeSet;
+
 import java.net.Socket;
 import java.net.ServerSocket;
 
@@ -115,6 +117,7 @@ public class StratumServer extends Thread
 
             new TimeoutThread().start();
             new NewBlockThread().start();
+            new PruneThread().start();
 
             while(ss.isBound())
             {
@@ -184,6 +187,63 @@ public class StratumServer extends Thread
 
         }
 
+    }
+
+    public class PruneThread extends Thread
+    {
+        public PruneThread()
+        {
+
+        }
+        public void run()
+        {
+            while(true)
+            {
+                try
+                {
+                    Thread.sleep(43000);
+                    doRun();
+                }
+                catch(Throwable t)
+                {           
+                    t.printStackTrace();
+                }
+            }
+
+        }
+
+        private void doRun()
+            throws Exception
+        {
+            TreeSet<String> to_delete = new TreeSet<String>();
+            int user_sessions=0;
+            int user_jobs=0;
+            synchronized(user_session_data_map)
+            {
+                user_sessions = user_session_data_map.size();
+
+                for(Map.Entry<String, UserSessionData> me : user_session_data_map.entrySet())
+                {
+                    user_jobs += me.getValue().getJobCount();
+
+                    if (me.getValue().prune())
+                    {
+                        to_delete.add(me.getKey());
+                    }
+                }
+
+                for(String id : to_delete)
+                {
+                    user_session_data_map.remove(id);
+                }
+
+
+            }
+
+            metrics_reporter.metricCount("usersessions", user_sessions);
+            metrics_reporter.metricCount("userjobs", user_jobs);
+
+        }
     }
 
     /**
@@ -374,7 +434,7 @@ public class StratumServer extends Thread
         synchronized(user_session_data_map)
         {
             UserSessionData ud = user_session_data_map.get(pu.getWorkerName());
-            if (ud == null) ud = new UserSessionData();
+            if (ud == null) ud = new UserSessionData(this);
             user_session_data_map.put(pu.getWorkerName(), ud);
             return ud;
 
