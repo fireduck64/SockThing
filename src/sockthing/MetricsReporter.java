@@ -45,6 +45,11 @@ public class MetricsReporter extends Thread
     {
         return "sockthing/" + server.getInstanceId();
     }
+    public String getGlobalNamespace()
+    {
+        return "sockthing";
+    }
+
 
     public void metricCount(String name, double count)
     {
@@ -70,6 +75,31 @@ public class MetricsReporter extends Thread
         }
     }
 
+    public void metricTime(String name, double milliseconds)
+    {
+        PutMetricDataRequest req = new PutMetricDataRequest();
+
+        LinkedList<MetricDatum> lst = new LinkedList<MetricDatum>();
+
+        MetricDatum md = new MetricDatum();
+
+        md.setMetricName(name);
+        md.setValue(milliseconds);
+        md.setUnit("Milliseconds");
+        lst.add(md);
+        req.setMetricData(lst);
+        req.setNamespace(getGlobalNamespace());
+    
+        try
+        {
+            put_queue.put(req);
+        }
+        catch(java.lang.InterruptedException e)
+        {
+            throw new RuntimeException(e);
+        }
+        
+    }
     
 
     public void run()

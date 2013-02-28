@@ -43,6 +43,9 @@ public class Coinbase
 
     public Coinbase(StratumServer server, PoolUser pool_user, int block_height, BigInteger value, BigInteger fee_total, byte[] extranonce1)
     {
+        server.getConfig().require("coinbase_text");
+
+
         this.server = server;
         this.pool_user = pool_user;
         this.value = value;
@@ -63,9 +66,10 @@ public class Coinbase
         // EXT1+2 extranonce 1 and 2 from stratum
         // RNDN - Random number to make each coinbase different, so that workers
         //        can't submit duplicates to other jobs if the EXT1 is always the same
-        String script = "BLKH" + "EXT1" + "EXT2" + "RNDN" + "/SockThing/Stratum";
+        String script = "BLKH" + "EXT1" + "EXT2" + "RNDN" + "/SockThing/" + server.getConfig().get("coinbase_text");
         script_bytes= script.getBytes();
 
+        if (script_bytes.length > 100) throw new RuntimeException("Script bytes too long for coinbase");
 
         for(int i=0; i<4; i++)
         {

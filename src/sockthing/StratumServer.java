@@ -335,7 +335,14 @@ public class StratumServer extends Thread
     {
         System.out.println("Update triggered. Clean: " + clean);
         cached_block_template = null;
+        long t1_get_block = System.currentTimeMillis();
         JSONObject block_template = getCurrentBlockTemplate();
+        long t2_get_block = System.currentTimeMillis();
+
+        getMetricsReporter().metricTime("GetBlockTemplateTime", t2_get_block - t1_get_block);
+
+
+        long t1_update_connection = System.currentTimeMillis();
 
         LinkedList<Map.Entry<String, StratumConnection> > lst= new LinkedList<Map.Entry<String, StratumConnection> >();
         synchronized(conn_map)
@@ -348,6 +355,11 @@ public class StratumServer extends Thread
             me.getValue().sendRealJob(block_template, clean);
 
         }
+        
+        long t2_update_connection = System.currentTimeMillis();
+
+        getMetricsReporter().metricTime("UpdateConnectionsTime", t2_update_connection - t1_update_connection);
+
 
     }
 
@@ -366,8 +378,8 @@ public class StratumServer extends Thread
         conf.require("pay_to_address");
         conf.require("network");
         conf.require("instance_id");
-
-
+        conf.require("coinbase_text");
+        
         StratumServer server = new StratumServer(conf);
 
         server.setInstanceId(conf.get("instance_id"));
