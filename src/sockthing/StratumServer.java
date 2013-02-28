@@ -379,6 +379,7 @@ public class StratumServer extends Thread
         conf.require("network");
         conf.require("instance_id");
         conf.require("coinbase_text");
+        conf.require("saver_messaging_enabled");
         
         StratumServer server = new StratumServer(conf);
 
@@ -386,8 +387,15 @@ public class StratumServer extends Thread
         server.setMetricsReporter(new MetricsReporter(server));
 
         server.setAuthHandler(new AddressDifficultyAuthHandler(server));
-        //server.setShareSaver(new DBShareSaver(conf));
-        server.setShareSaver(new ShareSaverMessaging(server, new DBShareSaver(conf)));
+
+        if (conf.getBoolean("saver_messaging_enabled"))
+        {
+            server.setShareSaver(new ShareSaverMessaging(server, new DBShareSaver(conf)));
+        }
+        else
+        {
+            server.setShareSaver(new DBShareSaver(conf));
+        }
 
 
         String network = conf.get("network");

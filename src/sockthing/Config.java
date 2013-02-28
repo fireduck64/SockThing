@@ -50,6 +50,24 @@ public class Config
         }
         return lst;
     }
+
+    public boolean getBoolean(String key)
+    {
+        String v = get(key);
+        v = v.toLowerCase();
+        if (v.equals("1")) return true;
+        if (v.equals("true")) return true;
+        if (v.equals("yes")) return true;
+        if (v.equals("y")) return true;
+        if (v.equals("on")) return true;
+        if (v.equals("hell yeah")) return true;
+
+
+
+
+        return false;
+
+    }
     
 
 }
