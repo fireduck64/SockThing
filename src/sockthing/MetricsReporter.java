@@ -24,6 +24,13 @@ public class MetricsReporter extends Thread
 
         Config conf = server.getConfig();
 
+        conf.require("metrics_enabled");
+
+        if (!conf.getBoolean("metrics_enabled"))
+        {
+            return;
+        }
+
         put_queue=new LinkedBlockingQueue<PutMetricDataRequest>();
 
         conf.require("metrics_aws_region");
@@ -67,7 +74,10 @@ public class MetricsReporter extends Thread
     
         try
         {
-            put_queue.put(req);
+            if (put_queue != null)
+            {
+                put_queue.put(req);
+            }
         }
         catch(java.lang.InterruptedException e)
         {
@@ -92,7 +102,10 @@ public class MetricsReporter extends Thread
     
         try
         {
-            put_queue.put(req);
+            if (put_queue != null)
+            {
+                put_queue.put(req);
+            }
         }
         catch(java.lang.InterruptedException e)
         {
