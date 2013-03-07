@@ -132,6 +132,7 @@ public class StratumConnection
     {
         public OutThread()
         {
+            setName("OutThread");
             setDaemon(true);
         }
 
@@ -175,6 +176,7 @@ public class StratumConnection
     {
         public InThread()
         {
+            setName("InThread");
             setDaemon(true);
         }
 

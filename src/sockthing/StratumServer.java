@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 
 import java.util.TreeSet;
 
@@ -15,9 +16,8 @@ import com.google.bitcoin.core.NetworkParameters;
 import com.google.bitcoin.core.Address;
 import com.google.bitcoin.core.Block;
 
-public class StratumServer extends Thread
+public class StratumServer
 {
-    private int port=3333;
     private BitcoinRPC bitcoin_rpc;
     private long max_idle_time = 300L * 1000L * 1000L * 1000L;//5 minutes in nanos
     //private long max_idle_time = 3L * 1000L * 1000L * 1000L;//3 seconds
@@ -41,14 +41,36 @@ public class StratumServer extends Thread
     private volatile int current_block;
     private volatile long current_block_update_time;
 
+    private StratumServer server;
+
     public StratumServer(Config config)
     {
         this.config = config;
 
         config.require("port");
-        port = config.getInt("port");
 
         bitcoin_rpc = new BitcoinRPC(config);
+
+
+        server = this;
+
+    }
+    public void start()
+    {
+
+        new TimeoutThread().start();
+        new NewBlockThread().start();
+        new PruneThread().start();
+
+        List<String> ports = config.getList("port");
+        for(String s : ports)
+        {
+            int port = Integer.parseInt(s);
+            new ListenThread(port).start();
+        }
+
+
+
     }
 
     public void setAuthHandler(AuthHandler auth_handler)
@@ -108,49 +130,60 @@ public class StratumServer extends Thread
         this.network_params = network_params;
     }
 
-    public void run()
+    public class ListenThread extends Thread
     {
-        try
+        private int port;
+        public ListenThread(int port)
         {
-            ServerSocket ss = new ServerSocket(port, 256);
-            ss.setReuseAddress(true);
+            this.port = port;
+            setName("Listen:"+port);
+        }
 
-            new TimeoutThread().start();
-            new NewBlockThread().start();
-            new PruneThread().start();
 
-            while(ss.isBound())
+        public void run()
+        {
+            System.out.println("Listening on port: " + port);
+
+            try
             {
-                try
+                ServerSocket ss = new ServerSocket(port, 256);
+                ss.setReuseAddress(true);
+
+
+                while(ss.isBound())
                 {
-                    Socket sock = ss.accept();
-
-                    String id = UUID.randomUUID().toString();
-
-                    StratumConnection conn = new StratumConnection(this, sock, id);
-                    synchronized(conn_map)
+                    try
                     {
-                        conn_map.put(id, conn);
+                        Socket sock = ss.accept();
+
+                        String id = UUID.randomUUID().toString();
+
+                        StratumConnection conn = new StratumConnection(server, sock, id);
+                        synchronized(conn_map)
+                        {
+                            conn_map.put(id, conn);
+                        }
                     }
-                }
-                catch(Throwable t)
-                {
-                    t.printStackTrace();
-                }
+                    catch(Throwable t)
+                    {
+                        t.printStackTrace();
+                    }
 
+                }
             }
-        }
-        catch(java.io.IOException e)
-        {
-            throw new RuntimeException(e);
-        }
+            catch(java.io.IOException e)
+            {
+                throw new RuntimeException(e);
+            }
 
+        }
     }
 
     public class TimeoutThread extends Thread
     {
         public TimeoutThread()
         {
+            setName("TimeoutThread");
             setDaemon(true);
         }
 
@@ -189,10 +222,15 @@ public class StratumServer extends Thread
 
     }
 
+    /**
+     * Prunes jobs out of user_session_data_map
+     */
     public class PruneThread extends Thread
     {
         public PruneThread()
         {
+            setName("PruneThread");
+            setDaemon(true);
 
         }
         public void run()
@@ -277,6 +315,7 @@ public class StratumServer extends Thread
         public NewBlockThread()
         {
             setDaemon(true);
+            setName("NewBlockThread");
             last_update_time=System.currentTimeMillis();
             
         }
