@@ -217,13 +217,13 @@ public class StratumConnection
     private void processInMessage(JSONObject msg)
         throws Exception
     {
-        long id = msg.getLong("id");
-        if (id == get_client_id)
+        long idx = msg.optLong("id",-1);
+        if (idx != -1 && idx == get_client_id)
         {
             client_version = msg.getString("result");
             return;
         }
-       
+        Object id = msg.opt("id");
         if (!msg.has("method"))
         {
             System.out.println("Unknown message: " + msg.toString());
