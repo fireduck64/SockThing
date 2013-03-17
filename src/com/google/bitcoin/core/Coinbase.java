@@ -34,6 +34,8 @@ public class Coinbase
     BigInteger fee_total;
     StratumServer server;
     PoolUser pool_user;
+    
+    String witty_remark_used;
    
     public static final int BLOCK_HEIGHT_OFF=0;
     public static final int EXTRA1_OFF=4;
@@ -67,6 +69,22 @@ public class Coinbase
         // RNDN - Random number to make each coinbase different, so that workers
         //        can't submit duplicates to other jobs if the EXT1 is always the same
         String script = "BLKH" + "EXT1" + "EXT2" + "RNDN" + "/SockThing/" + server.getConfig().get("coinbase_text");
+
+        if (server.getWittyRemarks()!=null)
+        {
+            String remark = server.getWittyRemarks().getNextRemark();
+            if (remark != null)
+            {
+                witty_remark_used = remark;
+                script = script +'/' + remark;
+
+           }
+        }
+        if (script.getBytes().length > 100)
+        {
+            script = new String(script.getBytes(), 0, 100);
+        }
+ 
         script_bytes= script.getBytes();
 
         if (script_bytes.length > 100) throw new RuntimeException("Script bytes too long for coinbase");
@@ -159,6 +177,14 @@ public class Coinbase
             buff[i] = tx_data[i+42+8+4];
         }
         return buff;
+    }
+
+    public void markRemark()
+    {
+        if (witty_remark_used!=null)
+        {
+            server.getWittyRemarks().markUsed(witty_remark_used);
+        }
     }
 
 

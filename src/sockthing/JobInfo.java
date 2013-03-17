@@ -320,6 +320,7 @@ public class JobInfo
             lst);
 
         System.out.println("Constructed block hash: " + block.getHash());
+
         try
         {
             block.verifyTransactions();
@@ -327,7 +328,15 @@ public class JobInfo
             byte[] blockbytes = block.bitcoinSerialize();
             System.out.println("Bytes: " + blockbytes.length);
 
-            return server.submitBlock(block);
+            String ret =  server.submitBlock(block);
+
+            if (ret.equals("Y"))
+            {
+                coinbase.markRemark();
+            }
+
+
+            return ret;
 
 
         }

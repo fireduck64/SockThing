@@ -31,6 +31,7 @@ public class StratumServer
     private ShareSaver share_saver;
     private OutputMonster output_monster;
     private MetricsReporter metrics_reporter;
+    private WittyRemarks witty_remarks;
 
     private String instance_id;
 
@@ -121,6 +122,15 @@ public class StratumServer
     public OutputMonster getOutputMonster()
     {
         return output_monster;
+    }
+
+    public void setWittyRemarks(WittyRemarks remarks)
+    {
+        this.witty_remarks = remarks;
+    }
+    public WittyRemarks getWittyRemarks()
+    {
+        return witty_remarks;
     }
 
     public NetworkParameters getNetworkParameters(){return network_params;}
@@ -419,6 +429,7 @@ public class StratumServer
         conf.require("instance_id");
         conf.require("coinbase_text");
         conf.require("saver_messaging_enabled");
+        conf.require("witty_remarks_enabled");
         
         StratumServer server = new StratumServer(conf);
 
@@ -448,6 +459,11 @@ public class StratumServer
         }
         
         server.setOutputMonster(new OutputMonsterShareFees(conf, server.getNetworkParameters()));
+
+        if (conf.getBoolean("witty_remarks_enabled"))
+        {
+            server.setWittyRemarks(new WittyRemarks());
+        }
         
         server.start();
     }

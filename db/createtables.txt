@@ -20,4 +20,14 @@ create index shares_time_idx_3 on shares(time);
 create unique index shares_unique_idx on shares(unique_id);
 
 
+create table witty_remarks
+(
+  order_id int unique not null,
+  remark varchar(100) not null,
+  used boolean default false,
+  primary key(order_id)
+) engine innodb;
+
+create unique index witty_remarks_next_idx on witty_remarks(used, order_id);
+create index witty_remarks_remark_idx on witty_remarks(remark);
 
