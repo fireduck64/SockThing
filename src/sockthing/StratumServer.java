@@ -70,6 +70,11 @@ public class StratumServer
             new ListenThread(port).start();
         }
 
+        if (witty_remarks != null)
+        {
+            witty_remarks.start();
+        }
+
 
 
     }

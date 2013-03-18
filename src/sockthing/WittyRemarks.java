@@ -10,14 +10,54 @@ import java.sql.PreparedStatement;
  *
  * Assumes using a table from the sharedb.
  */
-public class WittyRemarks
+public class WittyRemarks extends Thread
 {
     public static final long DB_CHECK_MS = 120000L;
 
     private long last_check;
     private String last_remark;
 
+    public WittyRemarks()
+    {
+        setDaemon(true);
+        setName("WittyRemarks");
+
+    }
+
     public synchronized String getNextRemark()
+    {
+
+        this.notifyAll();
+        return last_remark;
+    }
+
+
+    /**
+     * Do the actual update in this thread to avoid ever blocking work generation
+     */
+    public void run()
+    {
+        while(true)
+        {
+            try
+            {
+                updateLastRemark();
+                synchronized(this)
+                {
+                    this.wait(DB_CHECK_MS/4);
+                }
+            }
+            catch(Throwable t)
+            {
+                t.printStackTrace();
+            }
+        }
+
+
+
+    }
+
+    private void updateLastRemark()
     {
         if (System.currentTimeMillis() > last_check + DB_CHECK_MS)
         {  
@@ -60,13 +100,11 @@ public class WittyRemarks
 
         }
 
-        return last_remark;
 
     }
 
     public void markUsed(String remark)
     {
-        last_check = 0L;
         Connection conn = null;
         try
         {
@@ -85,6 +123,12 @@ public class WittyRemarks
         finally
         {
             DB.safeClose(conn);
+        }
+
+        synchronized(this)
+        {
+            last_check = 0L;
+            this.notifyAll();
         }
     }
 
