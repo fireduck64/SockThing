@@ -326,12 +326,17 @@ public class StratumServer
     {
         int last_block;
         long last_update_time;
+        long last_success_time;
+
+        public static final long MAX_TIME_WITHOUT_SUCCESS=2L*60L*1000L; //2 minutes
+        public static final long TEMPLATE_REFRESH_TIME=30L * 1000L; //30 seconds
 
         public NewBlockThread()
         {
             setDaemon(true);
             setName("NewBlockThread");
             last_update_time=System.currentTimeMillis();
+            last_success_time=System.currentTimeMillis();
             
         }
 
@@ -341,8 +346,14 @@ public class StratumServer
             {
                 try
                 {
+                    if (last_success_time + MAX_TIME_WITHOUT_SUCCESS < System.currentTimeMillis())
+                    {
+                        System.out.println("MAX_TIME_WITHOUT_SUCCESS EXCEEDED.  Giving up.  Failure.");
+                        System.exit(-1);
+                    }
                     Thread.sleep(1000);
                     doRun();
+
                 }
                 catch(Throwable t)
                 {
@@ -366,17 +377,19 @@ public class StratumServer
                 triggerUpdate(true);
                 last_block = block_height;
                 last_update_time = System.currentTimeMillis();
+                last_success_time = System.currentTimeMillis();
 
                 current_block_update_time = System.currentTimeMillis();
                 current_block = block_height;
 
             }
 
-            if (last_update_time + 30000 < System.currentTimeMillis())
+            if (last_update_time + TEMPLATE_REFRESH_TIME < System.currentTimeMillis())
             {
                 
                 triggerUpdate(false);
                 last_update_time = System.currentTimeMillis();
+                last_success_time = System.currentTimeMillis();
 
             }
 
