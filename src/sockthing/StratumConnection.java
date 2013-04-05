@@ -331,6 +331,7 @@ public class StratumConnection
                 else
                 {
                     reply.put("result", false);
+                    
                 }
                 if (res.reason==null)
                 {
@@ -341,6 +342,14 @@ public class StratumConnection
                     reply.put("error", res.reason);
                 }
                 sendMessage(reply);
+
+                
+                if ((res !=null) && (res.reason != null) && (res.reason.equals("H-not-zero")))
+                {
+                    //User is not respecting difficulty, remind them
+                    sendDifficulty();
+
+                }
             }
 
         }
