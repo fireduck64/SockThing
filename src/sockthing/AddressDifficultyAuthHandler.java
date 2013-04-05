@@ -30,7 +30,7 @@ public class AddressDifficultyAuthHandler implements AuthHandler
             pu.setName(addr);
             pu.setDifficulty(diff);
             if (!checkAddress(addr)) return null;
-            if (diff < 0) return null;
+            if (diff < 1) return null;
             if (diff > 65536) return null;
             return pu;
         }

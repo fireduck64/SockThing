@@ -77,8 +77,7 @@ public class Coinbase
             {
                 witty_remark_used = remark;
                 script = script +'/' + remark;
-
-           }
+            }
         }
         if (script.getBytes().length > 100)
         {

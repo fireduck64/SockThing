@@ -23,7 +23,7 @@ create unique index shares_unique_idx on shares(unique_id);
 create table witty_remarks
 (
   order_id int unique not null,
-  remark varchar(100) not null,
+  remark varchar(100) character set utf8 not null,
   used boolean default false,
   primary key(order_id)
 ) engine innodb;
