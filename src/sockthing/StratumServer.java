@@ -15,6 +15,8 @@ import org.json.JSONObject;
 import com.google.bitcoin.core.NetworkParameters;
 import com.google.bitcoin.core.Address;
 import com.google.bitcoin.core.Block;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 public class StratumServer
 {
@@ -43,10 +45,14 @@ public class StratumServer
     private volatile int current_block;
     private volatile long current_block_update_time;
 
+    private Semaphore new_block_notify_object;
+
     private StratumServer server;
 
     public StratumServer(Config config)
     {
+        new_block_notify_object = new Semaphore(0);
+
         this.config = config;
 
         config.require("port");
@@ -362,7 +368,10 @@ public class StratumServer
                         System.out.println("MAX_TIME_WITHOUT_SUCCESS EXCEEDED.  Giving up.  Failure.");
                         System.exit(-1);
                     }
-                    Thread.sleep(1000);
+                    if (new_block_notify_object.tryAcquire(1, 1000, TimeUnit.MILLISECONDS))
+                    {
+                        System.out.println("New block notify");
+                    }
                     doRun();
 
                 }
@@ -406,6 +415,11 @@ public class StratumServer
 
 
         }
+    }
+
+    public void notifyNewBlock()
+    {
+        new_block_notify_object.release(1);
     }
 
     private void triggerUpdate(boolean clean)
@@ -495,7 +509,7 @@ public class StratumServer
         }
         //server.setPPLNSAgent(new PPLNSAgent(server));
 
-        
+        new NotifyListenerUDP(server).start();        
         server.start();
     }
 
