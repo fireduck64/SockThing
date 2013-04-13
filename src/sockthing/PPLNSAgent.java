@@ -9,6 +9,14 @@ import java.util.Collection;
 import java.text.DecimalFormat;
 import java.util.Map;
 
+
+/**
+ * NOTE: this is not what HHTT currently uses for PPLNS calculation.
+ * It is very similar but because of the very small payments that could end up
+ * going to miners I thought it was better to do the PPLNS credits outside of the coinbase
+ * transaction and use the existing HHTT payment rules so that miners don't get a bunch 
+ * of very small payments
+ */
 public class PPLNSAgent extends Thread
 {
     public static final long DB_CHECK_MS = 120000L;
