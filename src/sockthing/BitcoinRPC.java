@@ -10,7 +10,7 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import org.apache.commons.codec.binary.Hex;
 import com.google.bitcoin.core.Block;
-
+import java.util.Random;
 
 public class BitcoinRPC
 {
@@ -105,9 +105,11 @@ public class BitcoinRPC
     public JSONObject submitBlock(Block blk)
         throws java.io.IOException, org.json.JSONException
     {
+        Random rnd = new Random();
+
         JSONObject msg = new JSONObject();
         msg.put("method", "submitblock");
-        msg.put("id", 91);
+        msg.put("id", "" + rnd.nextInt());
         
         JSONArray params = new JSONArray();
         params.put(Hex.encodeHexString(blk.bitcoinSerialize()));

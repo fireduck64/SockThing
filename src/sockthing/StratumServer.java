@@ -527,13 +527,35 @@ public class StratumServer
 
     public String submitBlock(Block blk)
     {
+        String result="N";
+        for(int i=0; i<10; i++)
+        {
+            System.out.println("Attempting block submit");
+            result = submitBlockAttempt(blk);
+            if(result.equals("Y")) return result;
+        }
+        return result;
+    }
+
+
+    private String submitBlockAttempt(Block blk)
+    {
         try
         {
             JSONObject result = bitcoin_rpc.submitBlock(blk);
 
-            System.out.println(result.toString(2));
+            System.out.println("Block result: " + result.toString(2));
 
-            return "Y"; //TODO - actually check this
+            if (result.isNull("error") && result.isNull("result"))
+            {
+                return "Y"; 
+            }
+            else
+            {
+                System.out.println("Block submit error:  "+ result.get("error"));
+                return "N";
+            }
+
         }
         catch(Throwable t)
         {
