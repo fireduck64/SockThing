@@ -7,7 +7,7 @@
   <property name="test" value="./test" />
   <property name="build_test" value="./build_test" />
   <property name="lib" value="./lib" />
-  <property name="version" value="0.5.6" />
+  <property name="version" value="0.6.0" />
 
   <path id="test.classpath">
     <pathelement location="${build}" />

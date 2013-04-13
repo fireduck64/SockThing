@@ -32,6 +32,7 @@ public class StratumServer
     private OutputMonster output_monster;
     private MetricsReporter metrics_reporter;
     private WittyRemarks witty_remarks;
+    private PPLNSAgent pplns_agent;
 
     private String instance_id;
 
@@ -75,6 +76,7 @@ public class StratumServer
             witty_remarks.start();
         }
 
+        //pplns_agent.start();
 
 
     }
@@ -136,6 +138,15 @@ public class StratumServer
     public WittyRemarks getWittyRemarks()
     {
         return witty_remarks;
+    }
+
+    public void setPPLNSAgent(PPLNSAgent pplns_agent)
+    {
+        this.pplns_agent = pplns_agent;
+    }
+    public PPLNSAgent getPPLNSAgent()
+    {
+        return pplns_agent;
     }
 
     public NetworkParameters getNetworkParameters(){return network_params;}
@@ -482,6 +493,8 @@ public class StratumServer
         {
             server.setWittyRemarks(new WittyRemarks());
         }
+        //server.setPPLNSAgent(new PPLNSAgent(server));
+
         
         server.start();
     }
@@ -502,6 +515,14 @@ public class StratumServer
         getMetricsReporter().metricCount("getblocktemplate",1.0);
         return c;
 
+    }
+
+    public double getDifficulty()
+        throws java.io.IOException, org.json.JSONException
+    {
+        JSONObject post;
+        post = new JSONObject(bitcoin_rpc.getSimplePostRequest("getdifficulty"));
+        return bitcoin_rpc.sendPost(post).getDouble("result");
     }
 
     public String submitBlock(Block blk)
