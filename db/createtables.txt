@@ -10,7 +10,8 @@ create table shares
   difficulty double,
   time timestamp default now(),
   hash varchar(64),
-  unique_id varchar(64)
+  unique_id varchar(64),
+  block_difficulty double
 ) engine innodb;
 
 create index shares_time_idx_2 on shares(username, time, our_result, difficulty);

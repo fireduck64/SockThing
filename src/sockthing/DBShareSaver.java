@@ -5,6 +5,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
+// import org.json.JSONObject;
+
 public class DBShareSaver implements ShareSaver
 {
     public DBShareSaver(Config config)
@@ -26,7 +28,7 @@ public class DBShareSaver implements ShareSaver
 
     }
 
-    public void saveShare(PoolUser pu, SubmitResult submit_result, String source, String unique_job_string) throws ShareSaveException
+    public void saveShare(PoolUser pu, SubmitResult submit_result, String source, String unique_job_string, Double block_difficulty) throws ShareSaveException
     {
         
         Connection conn = null;
@@ -35,7 +37,7 @@ public class DBShareSaver implements ShareSaver
         {
             conn = DB.openConnection("share_db");
 
-            PreparedStatement ps = conn.prepareStatement("insert into shares (rem_host, username, our_result, upstream_result, reason, difficulty, hash, client, unique_id) values (?,?,?,?,?,?,?,?,?)");
+            PreparedStatement ps = conn.prepareStatement("insert into shares (rem_host, username, our_result, upstream_result, reason, difficulty, hash, client, unique_id, block_difficulty) values (?,?,?,?,?,?,?,?,?,?)");
 
             String reason_str = null;
             if (submit_result.reason != null)
@@ -65,6 +67,8 @@ public class DBShareSaver implements ShareSaver
             ps.setString(8, submit_result.client_version);
 
             ps.setString(9, unique_job_string);
+            ps.setDouble(10, block_difficulty);
+
             ps.execute();
             ps.close();
             

@@ -47,6 +47,8 @@ public class StratumServer
 
     private Semaphore new_block_notify_object;
 
+    private volatile double block_difficulty;
+
     private StratumServer server;
 
     public StratumServer(Config config)
@@ -58,7 +60,6 @@ public class StratumServer
         config.require("port");
 
         bitcoin_rpc = new BitcoinRPC(config);
-
 
         server = this;
 
@@ -108,6 +109,11 @@ public class StratumServer
     public Config getConfig()
     {
         return config;
+    }
+
+    public Double getBlockDifficulty()
+    {
+        return block_difficulty;
     }
 
     public String getInstanceId()
@@ -385,7 +391,7 @@ public class StratumServer
         }
         private void doRun()throws Exception
         {
-            
+
 
             JSONObject reply = bitcoin_rpc.doSimplePostRequest("getblockcount");
 
@@ -422,11 +428,25 @@ public class StratumServer
         new_block_notify_object.release(1);
     }
 
+    private void updateDifficulty()
+        throws Exception
+    {
+        JSONObject reply = bitcoin_rpc.doSimplePostRequest("getdifficulty");
+        block_difficulty = reply.getDouble("result");
+
+    }
+
     private void triggerUpdate(boolean clean)
         throws Exception
     {
         System.out.println("Update triggered. Clean: " + clean);
         cached_block_template = null;
+
+        if (clean)
+        {
+            updateDifficulty();
+        }
+
         long t1_get_block = System.currentTimeMillis();
         JSONObject block_template = getCurrentBlockTemplate();
         long t2_get_block = System.currentTimeMillis();

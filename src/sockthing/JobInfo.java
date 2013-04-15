@@ -136,7 +136,7 @@ public class JobInfo
         {
             try
             {
-                server.getShareSaver().saveShare(pool_user,submit_result, "sockthing/" + server.getInstanceId(), unique_id);
+                server.getShareSaver().saveShare(pool_user,submit_result, "sockthing/" + server.getInstanceId(), unique_id, server.getBlockDifficulty());
             }
             catch(ShareSaveException e)
             {
