@@ -42,6 +42,7 @@ public class Coinbase
     public static final int EXTRA2_OFF=8;
     public static final int RANDOM_OFF=12;
 
+    private boolean first_gen = true;
 
     public Coinbase(StratumServer server, PoolUser pool_user, int block_height, BigInteger value, BigInteger fee_total, byte[] extranonce1)
     {
@@ -97,8 +98,6 @@ public class Coinbase
         script_bytes[1]=height_array[3];
         script_bytes[3]=height_array[1];
 
-       
-                
         for(int i=0; i<4; i++)
         {
             script_bytes[i+EXTRA1_OFF ] = extranonce1[i];
@@ -129,13 +128,29 @@ public class Coinbase
      */
     public Transaction genTx()
     {
+        Transaction priortx = tx;
+
         tx = new Transaction(server.getNetworkParameters());
         tx.addInput(new TransactionInput(server.getNetworkParameters(), tx, script_bytes));
-
-        server.getOutputMonster().addOutputs(pool_user, tx, value, fee_total);
+        if (first_gen)
+        {
+            server.getOutputMonster().addOutputs(pool_user, tx, value, fee_total);
+            first_gen = false;
+        } else {
+            for(TransactionOutput out : priortx.getOutputs())
+            {
+                tx.addOutput(out);
+            }
+        }
 
         tx_data = tx.bitcoinSerialize();
 
+        /*System.out.println("tx_data = " + tx_data);
+
+        for(TransactionOutput out : tx.getOutputs())
+        {
+            System.out.println("  " + out);
+        }*/
         return tx;
 
     }
