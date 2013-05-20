@@ -40,6 +40,9 @@ public class StratumServer
 
     private String instance_id;
 
+    /**
+     * Nothing should read this, anything interested should call getCurrentBlockTemplate() instead
+     */
     private JSONObject cached_block_template;
     
     private Map<String, UserSessionData> user_session_data_map=new HashMap<String, UserSessionData>(1024, 0.5f);
@@ -51,6 +54,7 @@ public class StratumServer
 
     private volatile double block_difficulty;
 
+    private volatile long block_reward;
     private StratumServer server;
 
     public StratumServer(Config config)
@@ -438,13 +442,13 @@ public class StratumServer
     private void updateBlockReward()
         throws Exception
     {
-        block_reward =  cached_block_template.getLong("coinbasevalue");
+        block_reward =  getCurrentBlockTemplate().getLong("coinbasevalue");
     }
     
     private void updateBlockDifficulty()
         throws Exception
     {
-        String hexString = "0x" + cached_block_template.getString("bits");
+        String hexString = "0x" + getCurrentBlockTemplate().getString("bits");
         Long hexInt = Long.decode(hexString).longValue();
 
         block_difficulty = difficultyFromHex(hexInt);
