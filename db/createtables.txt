@@ -1,3 +1,44 @@
+create table blocks
+(
+  seq int not null auto_increment,
+  hash varchar(64) unique not null,
+  height int,
+  confirmed boolean default FALSE,
+  time timestamp default now(),
+  difficulty double,
+  reward bigint,
+  primary key (seq)
+) engine innodb;
+create index blocks_hash_idx on blocks(hash);
+create index blocks_height_idx on blocks(height);
+create index blocks_time_idx_3 on blocks(time);
+create index blocks_confirmed_idx on blocks(confirmed);
+
+create table payments
+(
+  payment_hash varchar(64) not null,
+  block_hash varchar(64),
+  username varchar(128),
+  payment int not null,
+  time timestamp default now()
+) engine innodb;
+create unique index payments_uniq_idx on payments(payment_hash,username);
+create index payments_blockhash_idx on payments(block_hash,username);
+create index payments_username_idx on payments(username);
+create index payments_time_idx on payments(time);
+
+create table credits
+(
+  credit_id varchar(64) unique not null,
+  hash varchar(64),
+  username varchar(128),
+  credit double not null,
+  time timestamp default now(),
+  primary key(credit_id)
+) engine innodb;
+create index credits_hash_idx on credits(hash);
+create index credits_username_idx on credits(username);
+create index credits_time_idx on credits(time);
 
 create table shares
 (
@@ -11,15 +52,15 @@ create table shares
   time timestamp default now(),
   hash varchar(64),
   unique_id varchar(64),
+  block_reward bigint,
   block_difficulty double
 ) engine innodb;
 
 create index shares_time_idx_2 on shares(username, time, our_result, difficulty);
-create index share_hash_idx on shares(hash);
+create index shares_hash_idx on shares(hash);
 create index shares_up_result on shares(upstream_result);
 create index shares_time_idx_3 on shares(time);
 create unique index shares_unique_idx on shares(unique_id);
-
 
 create table witty_remarks
 (
