@@ -1,5 +1,7 @@
 package sockthing;
 
+import java.lang.Math;
+
 import java.util.Map;
 import java.util.UUID;
 import java.util.HashMap;
@@ -419,7 +421,6 @@ public class StratumServer
 
             }
 
-
         }
     }
 
@@ -428,24 +429,33 @@ public class StratumServer
         new_block_notify_object.release(1);
     }
 
-    private void updateDifficulty()
+    private double difficultyFromHex(Long bits)
+    {
+        double max_body = Math.log(0x00ffff), scaland = Math.log(256);
+        return Math.exp(max_body - Math.log(bits & 0x00ffffff) + scaland * (0x1d - ((bits & 0xff000000) >> 24)));
+    }
+
+    private void updateBlockReward()
         throws Exception
     {
-        JSONObject reply = bitcoin_rpc.doSimplePostRequest("getdifficulty");
-        block_difficulty = reply.getDouble("result");
+        block_reward =  cached_block_template.getLong("coinbasevalue");
+    }
+    
+    private void updateBlockDifficulty()
+        throws Exception
+    {
+        String hexString = "0x" + cached_block_template.getString("bits");
+        Long hexInt = Long.decode(hexString).longValue();
 
+        block_difficulty = difficultyFromHex(hexInt);
     }
 
     private void triggerUpdate(boolean clean)
         throws Exception
     {
         System.out.println("Update triggered. Clean: " + clean);
-        cached_block_template = null;
 
-        if (clean)
-        {
-            updateDifficulty();
-        }
+        cached_block_template = null;
 
         long t1_get_block = System.currentTimeMillis();
         JSONObject block_template = getCurrentBlockTemplate();
@@ -453,6 +463,11 @@ public class StratumServer
 
         getMetricsReporter().metricTime("GetBlockTemplateTime", t2_get_block - t1_get_block);
 
+        if (clean)
+        {
+            // Needs the new block template cached before we update.
+            updateBlockDifficulty();
+        }
 
         long t1_update_connection = System.currentTimeMillis();
 
@@ -471,7 +486,6 @@ public class StratumServer
         long t2_update_connection = System.currentTimeMillis();
 
         getMetricsReporter().metricTime("UpdateConnectionsTime", t2_update_connection - t1_update_connection);
-
 
     }
 
