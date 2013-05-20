@@ -31,9 +31,15 @@ public class Config
     {
         return props.getProperty(key);
     }
+
     public int getInt(String key)
     {
         return Integer.parseInt(get(key));
+    }
+
+    public double getDouble(String key)
+    {
+        return Double.parseDouble(get(key));
     }
 
     public List<String> getList(String key)
@@ -61,9 +67,6 @@ public class Config
         if (v.equals("y")) return true;
         if (v.equals("on")) return true;
         if (v.equals("hell yeah")) return true;
-
-
-
 
         return false;
 
