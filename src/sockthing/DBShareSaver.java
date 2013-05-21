@@ -28,7 +28,7 @@ public class DBShareSaver implements ShareSaver
 
     }
 
-    public void saveShare(PoolUser pu, SubmitResult submit_result, String source, String unique_job_string, Double block_difficulty) throws ShareSaveException
+    public void saveShare(PoolUser pu, SubmitResult submit_result, String source, String unique_job_string, Double block_difficulty, Long block_reward) throws ShareSaveException
     {
         
         Connection conn = null;
@@ -37,7 +37,7 @@ public class DBShareSaver implements ShareSaver
         {
             conn = DB.openConnection("share_db");
 
-            PreparedStatement ps = conn.prepareStatement("insert into shares (rem_host, username, our_result, upstream_result, reason, difficulty, hash, client, unique_id, block_difficulty) values (?,?,?,?,?,?,?,?,?,?)");
+            PreparedStatement ps = conn.prepareStatement("insert into shares (rem_host, username, our_result, upstream_result, reason, difficulty, hash, client, unique_id, block_difficulty, block_reward) values (?,?,?,?,?,?,?,?,?,?,?)");
 
             String reason_str = null;
             if (submit_result.reason != null)
@@ -68,10 +68,27 @@ public class DBShareSaver implements ShareSaver
 
             ps.setString(9, unique_job_string);
             ps.setDouble(10, block_difficulty);
+            ps.setLong(11, block_reward);
 
             ps.execute();
             ps.close();
-            
+           
+            if (submit_result.upstream_result != null
+                && submit_result.upstream_result.equals("Y")
+                && submit_result.hash != null)
+            {
+                PreparedStatement blockps = conn.prepareStatement("insert into blocks (hash, difficulty, reward, height) values (?,?,?,?)");
+                blockps.setString(1, submit_result.hash.toString());
+                blockps.setDouble(2, block_difficulty);
+                blockps.setLong(3, block_reward);
+                blockps.setInt(4, submit_result.height);
+
+                blockps.execute();
+                blockps.close();
+
+                //for(TransactionOutput out : priortx.getOutputs())
+
+            }
         }
         catch(java.sql.SQLIntegrityConstraintViolationException e)
         {
@@ -86,13 +103,6 @@ public class DBShareSaver implements ShareSaver
             DB.safeClose(conn);
         }
 
-
-        
-        
-        
-    
     }
-
-
 
 }

@@ -122,6 +122,11 @@ public class StratumServer
         return block_difficulty;
     }
 
+    public Long getBlockReward()
+    {
+        return block_reward;
+    }
+
     public String getInstanceId()
     {
         return instance_id;
@@ -470,6 +475,7 @@ public class StratumServer
         if (clean)
         {
             // Needs the new block template cached before we update.
+            updateBlockReward();
             updateBlockDifficulty();
         }
 

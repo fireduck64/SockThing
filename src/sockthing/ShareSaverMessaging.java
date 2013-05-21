@@ -70,7 +70,7 @@ public class ShareSaverMessaging implements ShareSaver
     }
 
 
-    public void saveShare(PoolUser pu, SubmitResult submit_result, String source, String unique_id, Double block_difficulty) throws ShareSaveException
+    public void saveShare(PoolUser pu, SubmitResult submit_result, String source, String unique_id, Double block_difficulty, Long block_reward) throws ShareSaveException
     {
         try
         {
@@ -85,6 +85,7 @@ public class ShareSaverMessaging implements ShareSaver
             msg.put("reason", submit_result.reason);
             msg.put("unique_id", unique_id);
             msg.put("block_difficulty", block_difficulty);
+            msg.put("block_reward", block_reward);
             msg.put("height", submit_result.height);
 
             String hash_str = null;
@@ -151,9 +152,15 @@ public class ShareSaverMessaging implements ShareSaver
                 String unique_id = save_msg.getString("unique_id");
 
                 double block_difficulty = -1.0; //Meaning unknown
+                long block_reward = -1; //Meaning unknown
                 if (save_msg.has("block_difficulty"))
                 {
                     block_difficulty = save_msg.getDouble("block_difficulty");
+                }
+                
+                if (save_msg.has("block_reward"))
+                {
+                    block_reward = save_msg.getLong("block_reward");
                 }
                 
                 PoolUser pu = new PoolUser(worker);
@@ -189,7 +196,7 @@ public class ShareSaverMessaging implements ShareSaver
                     res.height = -1; // Meaning unknown
                 }
 
-                inner_saver.saveShare(pu, res, source, unique_id, block_difficulty);
+                inner_saver.saveShare(pu, res, source, unique_id, block_difficulty, block_reward);
                 
                 sqs.deleteMessage(new DeleteMessageRequest(queue_url, msg.getReceiptHandle()));
 

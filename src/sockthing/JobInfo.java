@@ -28,8 +28,8 @@ public class JobInfo
     private PoolUser pool_user;
     private HashSet<String> submits;
     private Sha256Hash share_target;
-
-
+    private double difficulty;
+    private long value;
 
     private Coinbase coinbase;
 
@@ -44,14 +44,15 @@ public class JobInfo
         this.extranonce1 = extranonce1;
 
 
-        long value = block_template.getLong("coinbasevalue");
+        this.value = block_template.getLong("coinbasevalue");
+        this.difficulty = server.getBlockDifficulty();
+
         int height = block_template.getInt("height");
 
         submits = new HashSet<String>();
 
 
         coinbase = new Coinbase(server, pool_user, height, BigInteger.valueOf(value), getFeeTotal(), extranonce1);
-        coinbase.genTx();
 
         share_target = DiffMath.getTargetForDifficulty(pool_user.getDifficulty());
 
@@ -136,7 +137,7 @@ public class JobInfo
         {
             try
             {
-                server.getShareSaver().saveShare(pool_user,submit_result, "sockthing/" + server.getInstanceId(), unique_id, server.getBlockDifficulty());
+                server.getShareSaver().saveShare(pool_user,submit_result, "sockthing/" + server.getInstanceId(), unique_id, difficulty, value);
             }
             catch(ShareSaveException e)
             {
