@@ -85,6 +85,7 @@ public class ShareSaverMessaging implements ShareSaver
             msg.put("reason", submit_result.reason);
             msg.put("unique_id", unique_id);
             msg.put("block_difficulty", block_difficulty);
+            msg.put("height", submit_result.height);
 
             String hash_str = null;
             if (submit_result.hash != null) hash_str = submit_result.hash.toString();
@@ -180,6 +181,12 @@ public class ShareSaverMessaging implements ShareSaver
                 if (save_msg.has("client"))
                 {
                     res.client_version = save_msg.getString("client");
+                }
+                if (save_msg.has("height"))
+                {
+                    res.height = save_msg.getInt("height");
+                } else { 
+                    res.height = -1; // Meaning unknown
                 }
 
                 inner_saver.saveShare(pu, res, source, unique_id, block_difficulty);

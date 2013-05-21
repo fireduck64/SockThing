@@ -200,7 +200,7 @@ public class JobInfo
         {
             coinbase.setExtranonce2(extranonce2);
             coinbase_hash = coinbase.genTx().getHash();
-        
+ 
 
             Sha256Hash merkle_root = new Sha256Hash(HexUtil.swapEndianHexString(coinbase_hash.toString()));
         
@@ -244,7 +244,6 @@ public class JobInfo
 
                 if (blockhash.toString().compareTo(share_target.toString()) < 0)
                 {
-                    
                     submit_result.our_result="Y";
                 }
                 else
@@ -258,6 +257,7 @@ public class JobInfo
                 {
                     submit_result.upstream_result
                     = buildAndSubmitBlock(params, merkle_root);
+                    submit_result.height = getHeight();
                 }
 
                 

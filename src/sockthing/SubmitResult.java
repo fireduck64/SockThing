@@ -8,5 +8,5 @@ public class SubmitResult
     public String upstream_result;
     public String reason;
     public String client_version;
-
+    public int height;
 }
