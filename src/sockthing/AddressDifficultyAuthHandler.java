@@ -8,9 +8,31 @@ public class AddressDifficultyAuthHandler implements AuthHandler
 {
     protected StratumServer server;
 
+    private int default_difficulty;
+
     public AddressDifficultyAuthHandler(StratumServer server)
     {
         this.server = server;
+
+        Config config = server.getConfig();
+
+        //if (config.get("default_difficulty") != null && !config.get("default_difficulty").isEmpty())
+        if (config.isSet("default_difficulty"))
+        {
+            int diff = config.getInt("default_difficulty");
+
+            if (diff < 1 || diff > 65536)
+            {
+                default_difficulty = 32;
+                System.out.println("Config default_difficulty " + diff + " invalid. Setting default difficulty to 32.");
+            } else {
+                default_difficulty = diff;
+                System.out.println("Config default_difficulty found. Setting to " + diff);
+            }
+        } else {
+            default_difficulty = 32;
+            System.out.println("Config default_difficulty not found. Setting default difficulty to 32.");
+        }
     }
 
     /**
@@ -38,7 +60,7 @@ public class AddressDifficultyAuthHandler implements AuthHandler
         {
             String addr = stok.nextToken();
             pu.setName(addr);
-            pu.setDifficulty(32);
+            pu.setDifficulty(default_difficulty);
             if (!checkAddress(addr)) return null;
             return pu;
         }
