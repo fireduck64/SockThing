@@ -72,5 +72,8 @@ public class Config
 
     }
     
-
+    public boolean isSet(String key)
+    {
+        return (get(key) != null && !get(key).isEmpty());
+    }
 }
