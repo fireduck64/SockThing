@@ -75,7 +75,15 @@ public class BitcoinRPC
         wr.flush();
         wr.close();
 
-        Scanner scan = new Scanner(connection.getInputStream());
+        Scanner scan;
+
+        if (connection.getResponseCode() != 500)
+        {
+            scan = new Scanner(connection.getInputStream());
+        } else {
+            scan = new Scanner(connection.getErrorStream());
+        }
+
         StringBuilder sb = new StringBuilder();
 
         while(scan.hasNextLine())
