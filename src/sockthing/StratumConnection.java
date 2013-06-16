@@ -152,6 +152,7 @@ public class StratumConnection
 
                         String msg_str = msg.toString();
                         out.println(msg_str);
+                        out.flush();
 
                         System.out.println("Out: " + msg.toString());
                         updateLastNetworkAction();
