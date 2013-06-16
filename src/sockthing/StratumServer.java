@@ -204,6 +204,7 @@ public class StratumServer
                     try
                     {
                         Socket sock = ss.accept();
+                        sock.setTcpNoDelay(true);
 
                         String id = UUID.randomUUID().toString();
 
