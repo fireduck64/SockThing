@@ -219,7 +219,7 @@ public class StratumConnection
         throws Exception
     {
         long idx = msg.optLong("id",-1);
-        if (idx != -1 && idx == get_client_id)
+        if (idx != -1 && idx == get_client_id && msg.has("result"))
         {
             client_version = msg.getString("result");
             return;
