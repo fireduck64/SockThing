@@ -37,6 +37,7 @@ public class StratumServer
     private MetricsReporter metrics_reporter;
     private WittyRemarks witty_remarks;
     private PPLNSAgent pplns_agent;
+    private EventLog event_log;
 
     private String instance_id;
 
@@ -72,6 +73,7 @@ public class StratumServer
     }
     public void start()
     {
+        getEventLog().log("SERVER START");
 
         new TimeoutThread().start();
         new NewBlockThread().start();
@@ -170,6 +172,15 @@ public class StratumServer
     public PPLNSAgent getPPLNSAgent()
     {
         return pplns_agent;
+    }
+
+    public void setEventLog(EventLog log)
+    {
+        this.event_log = log;
+    }
+    public EventLog getEventLog()
+    {
+        return event_log;
     }
 
     public NetworkParameters getNetworkParameters(){return network_params;}
@@ -411,6 +422,12 @@ public class StratumServer
 
             if (block_height != last_block)
             {
+                //Using target high (next block height)
+                //for logging because that is what the block template,
+                //submitted shares and next found blocks all use.
+                int target_height = block_height+1;
+                getEventLog().log("New target height: " + target_height);
+
                 System.out.println(reply);
                 triggerUpdate(true);
                 last_block = block_height;
@@ -463,6 +480,7 @@ public class StratumServer
     private void triggerUpdate(boolean clean)
         throws Exception
     {
+        getEventLog().log("Update triggeded. Clean: " + clean);
         System.out.println("Update triggered. Clean: " + clean);
 
         cached_block_template = null;
@@ -495,6 +513,7 @@ public class StratumServer
         }
         
         long t2_update_connection = System.currentTimeMillis();
+        getEventLog().log("Update Complete");
 
         getMetricsReporter().metricTime("UpdateConnectionsTime", t2_update_connection - t1_update_connection);
 
@@ -521,6 +540,7 @@ public class StratumServer
         
         StratumServer server = new StratumServer(conf);
 
+        server.setEventLog(new EventLog(conf));
         server.setInstanceId(conf.get("instance_id"));
         server.setMetricsReporter(new MetricsReporter(server));
 
@@ -570,6 +590,8 @@ public class StratumServer
         c = bitcoin_rpc.sendPost(post).getJSONObject("result");
 
         cached_block_template=c;
+
+        getEventLog().log("new block template: " + c.getLong("height"));
 
         getMetricsReporter().metricCount("getblocktemplate",1.0);
         return c;

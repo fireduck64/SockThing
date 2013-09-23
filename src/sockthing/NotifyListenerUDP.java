@@ -37,6 +37,7 @@ public class NotifyListenerUDP extends Thread
                 DatagramPacket dp = new DatagramPacket(new byte[1024], 1024);
 
                 ds.receive(dp);
+                server.getEventLog().log("UDP Block notify received");
                 server.notifyNewBlock();
             }
         }

@@ -246,6 +246,8 @@ public class JobInfo
                 if (blockhash.toString().compareTo(share_target.toString()) < 0)
                 {
                     submit_result.our_result="Y";
+
+                    server.getEventLog().log("Share " + pool_user.getName() + " " + getHeight() + " " + blockhash );
                 }
                 else
                 {
@@ -322,6 +324,7 @@ public class JobInfo
 
         System.out.println("Constructed block hash: " + block.getHash());
 
+
         try
         {
             block.verifyTransactions();
@@ -335,7 +338,8 @@ public class JobInfo
             {
                 coinbase.markRemark();
             }
-
+            
+            server.getEventLog().log("Block sumitted: "+ getHeight() + " " + block.getHash() );
 
             return ret;
 
