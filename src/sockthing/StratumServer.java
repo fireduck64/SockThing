@@ -57,10 +57,14 @@ public class StratumServer
 
     private volatile long block_reward;
     private StratumServer server;
+    
+    private Object block_template_lock;
 
     public StratumServer(Config config)
     {
         new_block_notify_object = new Semaphore(0);
+
+        block_template_lock = new Object();
 
         this.config = config;
 
@@ -585,16 +589,23 @@ public class StratumServer
         JSONObject c = cached_block_template;
         if (c != null) return c;
 
-        JSONObject post;
-        post = new JSONObject(bitcoin_rpc.getSimplePostRequest("getblocktemplate"));
-        c = bitcoin_rpc.sendPost(post).getJSONObject("result");
+        synchronized(block_template_lock)
+        {
+            c = cached_block_template;
+            if (c != null) return c;
 
-        cached_block_template=c;
+            JSONObject post;
+            post = new JSONObject(bitcoin_rpc.getSimplePostRequest("getblocktemplate"));
+            c = bitcoin_rpc.sendPost(post).getJSONObject("result");
 
-        getEventLog().log("new block template: " + c.getLong("height"));
+            cached_block_template=c;
 
-        getMetricsReporter().metricCount("getblocktemplate",1.0);
-        return c;
+            getEventLog().log("new block template: " + c.getLong("height"));
+
+            getMetricsReporter().metricCount("getblocktemplate",1.0);
+            return c;
+
+        }
 
     }
 
