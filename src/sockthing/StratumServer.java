@@ -484,7 +484,7 @@ public class StratumServer
     private void triggerUpdate(boolean clean)
         throws Exception
     {
-        getEventLog().log("Update triggeded. Clean: " + clean);
+        getEventLog().log("Update triggered. Clean: " + clean);
         System.out.println("Update triggered. Clean: " + clean);
 
         cached_block_template = null;
