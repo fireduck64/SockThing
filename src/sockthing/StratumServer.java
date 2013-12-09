@@ -19,6 +19,8 @@ import com.google.bitcoin.core.Address;
 import com.google.bitcoin.core.Block;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 
 public class StratumServer
 {
@@ -431,6 +433,25 @@ public class StratumServer
                 //submitted shares and next found blocks all use.
                 int target_height = block_height+1;
                 getEventLog().log("New target height: " + target_height);
+                Connection conn = null;
+                try
+                {
+                  conn = DB.openConnection("share_db");
+                  PreparedStatement ps = conn.prepareStatement("insert into block_discovery (height, node) values (?,?)");
+                  ps.setInt(1, target_height);
+                  ps.setString(2,config.get("instance_id"));
+                  ps.execute();
+                  ps.close();
+                  conn.close();
+                }
+                catch(Throwable t)
+                {
+                  t.printStackTrace();
+                }
+                finally
+                {
+                  DB.safeClose(conn);
+                }
 
                 System.out.println(reply);
                 triggerUpdate(true);

@@ -339,7 +339,7 @@ public class JobInfo
                 coinbase.markRemark();
             }
             
-            server.getEventLog().log("Block sumitted: "+ getHeight() + " " + block.getHash() );
+            server.getEventLog().log("BLOCK SUBMITTED: "+ getHeight() + " " + block.getHash() );
 
             return ret;
 
