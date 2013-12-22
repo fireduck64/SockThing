@@ -9,6 +9,8 @@ import java.sql.ResultSet;
 
 public class DBShareSaver implements ShareSaver
 {
+    private double dgm_f, dgm_c, dgm_o;
+
     public DBShareSaver(Config config)
         throws java.sql.SQLException
     {
@@ -26,6 +28,13 @@ public class DBShareSaver implements ShareSaver
             64,
             16);
 
+        config.require("dgm_f");
+        config.require("dgm_c");
+        config.require("dgm_o");
+
+        dgm_f = config.getDouble("dgm_f");
+        dgm_c = config.getDouble("dgm_c");
+        dgm_o = config.getDouble("dgm_o");
     }
 
     public void saveShare(PoolUser pu, SubmitResult submit_result, String source, String unique_job_string, Double block_difficulty, Long block_reward) throws ShareSaveException
@@ -78,7 +87,7 @@ public class DBShareSaver implements ShareSaver
                 && submit_result.hash != null)
             {
                 PreparedStatement blockps = conn.prepareStatement("insert into blocks (hash, difficulty, reward, height) values (?,?,?,?)");
-                blockps.setString(1, submit_result.hash.toString());
+              	blockps.setString(1, submit_result.hash.toString());
                 blockps.setDouble(2, block_difficulty);
                 blockps.setLong(3, block_reward);
                 blockps.setInt(4, submit_result.height);
@@ -88,6 +97,72 @@ public class DBShareSaver implements ShareSaver
 
                 //for(TransactionOutput out : priortx.getOutputs())
 
+            }
+
+            // At some point should there be a CreditMonster abstration layer of some sort?
+            //
+            if (submit_result.our_result != null
+                && submit_result.our_result.equals("Y")
+               )
+            { 
+            //System.out.println("Our result was " + submit_result.our_result);
+            double dgm_p = ( (double) pu.getDifficulty() ) /  block_difficulty;
+            double dgm_r = 1.0 + dgm_p * (1.0 - dgm_c) * (1.0 - dgm_o) / dgm_c;
+            double dgm_log_r = Math.log(dgm_r);
+            double dgm_log_o = Math.log(dgm_o);
+            double B = ( (double) block_reward ) / 100000000.0;
+            double log_score = -10000000;
+            double dgm_log_s = 0.0;
+
+            ps = conn.prepareStatement("select username,score from dgm_score where username=? or username=\"dgm_log_s\"");
+            ps.setString(1, pu.getName());
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next())
+            {
+                String result_name = rs.getString("username");
+
+                if (result_name.equals("dgm_log_s"))
+                {
+                    dgm_log_s = rs.getDouble("score");
+                    //System.out.println("DGM setting dgm_log_s to " + dgm_log_s);
+                } else {
+                    log_score = rs.getDouble("score");
+                    //System.out.println("DGM Found score " + Math.exp(log_score) + " for " + result_name);
+                }
+            }
+
+            ps.close();
+
+            if (dgm_log_s >= 0.0)
+            {
+                PreparedStatement scoreps = conn.prepareStatement("replace into dgm_score (username, score) values (?, ?)");
+                scoreps.setString(1, pu.getName());
+                scoreps.setDouble(2, dgm_log_s + Math.log(Math.exp(log_score - dgm_log_s) + dgm_p * B));
+                scoreps.execute();
+                scoreps.close();
+
+                //System.out.println("DGM score (" + pu.getName() + ") new score " + (dgm_log_s + Math.log(Math.exp(log_score - dgm_log_s) + dgm_p * B)));
+
+                scoreps = conn.prepareStatement("update dgm_score set score=score + ? where username=\"dgm_log_s\"");
+                scoreps.setDouble(1, dgm_log_r);
+                scoreps.execute();
+                scoreps.close();
+                //System.out.println("DGM: dgm_score = " + dgm_log_s + " + " + dgm_log_r);
+                //System.out.println("DGM: dgm_score = " + Math.exp(dgm_log_s) + " * " + Math.exp(dgm_log_r));
+
+                if (submit_result.upstream_result != null
+                    && submit_result.upstream_result.equals("Y")
+                    && submit_result.hash != null)
+                {
+                    scoreps = conn.prepareStatement("update dgm_score set score=score + ? where username!=\"dgm_log_s\"");
+                    scoreps.setDouble(1, dgm_log_o);
+                    scoreps.execute();
+                    scoreps.close();
+                }
+            } else {
+                System.out.println("DGB ERROR: dgm_log_s is below ZERO");
+            }
             }
         }
         catch(java.sql.SQLIntegrityConstraintViolationException e)

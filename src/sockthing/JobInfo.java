@@ -227,8 +227,8 @@ public class JobInfo
                 String header_str = header.toString();
 
                 header_str = HexUtil.swapBytesInsideWord(header_str);
-                System.out.println("Header: " + header_str);
-                System.out.println("Header bytes: " + header_str.length());
+                //System.out.println("Header: " + header_str);
+                //System.out.println("Header bytes: " + header_str.length());
 
                 //header_str = HexUtil.swapWordHexString(header_str);
 
@@ -240,7 +240,7 @@ public class JobInfo
                 md.update(pass);
 
                 Sha256Hash blockhash = new Sha256Hash(HexUtil.swapEndianHexString(new Sha256Hash(md.digest()).toString()));
-                System.out.println("Found block hash: " + blockhash);
+                //System.out.println("Found jobid " + job_id + " block hash: " + blockhash);
                 submit_result.hash = blockhash;
 
                 if (blockhash.toString().compareTo(share_target.toString()) < 0)

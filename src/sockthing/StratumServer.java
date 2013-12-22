@@ -36,7 +36,9 @@ public class StratumServer
     private OutputMonster output_monster;
     private MetricsReporter metrics_reporter;
     private WittyRemarks witty_remarks;
+    private DGMAgent dgm_agent;
     private PPLNSAgent pplns_agent;
+    private BlockUpdater block_updater;
 
     private String instance_id;
 
@@ -89,8 +91,9 @@ public class StratumServer
             witty_remarks.start();
         }
 
+        dgm_agent.start();
+        block_updater.start();
         //pplns_agent.start();
-
 
     }
 
@@ -163,6 +166,24 @@ public class StratumServer
         return witty_remarks;
     }
 
+    public void setBlockUpdater(BlockUpdater block_updater)
+    {
+        this.block_updater = block_updater;
+    }
+    public BlockUpdater getBlockUpdater()
+    {
+        return block_updater;
+    }
+
+    public void setDGMAgent(DGMAgent dgm_agent)
+    {
+        this.dgm_agent = dgm_agent;
+    }
+    public DGMAgent getDGMAgent()
+    {
+        return dgm_agent;
+    }
+
     public void setPPLNSAgent(PPLNSAgent pplns_agent)
     {
         this.pplns_agent = pplns_agent;
@@ -204,6 +225,7 @@ public class StratumServer
                     try
                     {
                         Socket sock = ss.accept();
+                        sock.setTcpNoDelay(true);
 
                         String id = UUID.randomUUID().toString();
 
@@ -344,13 +366,13 @@ public class StratumServer
         {
             return 0;
         }
-        if (next_block == current_block)
-        {
-            if (current_block_update_time + 10000 > System.currentTimeMillis())
+        //if (next_block == current_block)
+        //{
+            if (current_block_update_time + 60000 > System.currentTimeMillis())
             {
                 return 1;
             }
-        }
+        //}
         return 2;
 
         
@@ -545,14 +567,17 @@ public class StratumServer
             server.setNetworkParameters(NetworkParameters.testNet3());
         }
         
-        server.setOutputMonster(new OutputMonsterShareFees(conf, server.getNetworkParameters()));
+        server.setDGMAgent(new DGMAgent(server, conf));
+        server.setBlockUpdater(new BlockUpdater(server, conf));
+        //server.setPPLNSAgent(new PPLNSAgent(server));
+
+        //server.setOutputMonster(new OutputMonsterShareFees(conf, server.getNetworkParameters()));
+        server.setOutputMonster(new OutputMonsterDGM(conf, server.getNetworkParameters(), server.getDGMAgent()));
 
         if (conf.getBoolean("witty_remarks_enabled"))
         {
             server.setWittyRemarks(new WittyRemarks());
         }
-        //server.setPPLNSAgent(new PPLNSAgent(server));
-
         new NotifyListenerUDP(server).start();        
         server.start();
     }
