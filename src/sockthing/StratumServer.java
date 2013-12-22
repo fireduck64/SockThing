@@ -19,6 +19,8 @@ import com.google.bitcoin.core.Address;
 import com.google.bitcoin.core.Block;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 
 public class StratumServer
 {
@@ -39,6 +41,7 @@ public class StratumServer
     private DGMAgent dgm_agent;
     private PPLNSAgent pplns_agent;
     private BlockUpdater block_updater;
+    private EventLog event_log;
 
     private String instance_id;
 
@@ -58,10 +61,14 @@ public class StratumServer
 
     private volatile long block_reward;
     private StratumServer server;
+    
+    private Object block_template_lock;
 
     public StratumServer(Config config)
     {
         new_block_notify_object = new Semaphore(0);
+
+        block_template_lock = new Object();
 
         this.config = config;
 
@@ -74,6 +81,7 @@ public class StratumServer
     }
     public void start()
     {
+        getEventLog().log("SERVER START");
 
         new TimeoutThread().start();
         new NewBlockThread().start();
@@ -191,6 +199,15 @@ public class StratumServer
     public PPLNSAgent getPPLNSAgent()
     {
         return pplns_agent;
+    }
+
+    public void setEventLog(EventLog log)
+    {
+        this.event_log = log;
+    }
+    public EventLog getEventLog()
+    {
+        return event_log;
     }
 
     public NetworkParameters getNetworkParameters(){return network_params;}
@@ -432,6 +449,31 @@ public class StratumServer
 
             if (block_height != last_block)
             {
+                //Using target high (next block height)
+                //for logging because that is what the block template,
+                //submitted shares and next found blocks all use.
+                int target_height = block_height+1;
+                getEventLog().log("New target height: " + target_height);
+                Connection conn = null;
+                try
+                {
+                  conn = DB.openConnection("share_db");
+                  PreparedStatement ps = conn.prepareStatement("insert into block_discovery (height, node) values (?,?)");
+                  ps.setInt(1, target_height);
+                  ps.setString(2,config.get("instance_id"));
+                  ps.execute();
+                  ps.close();
+                  conn.close();
+                }
+                catch(Throwable t)
+                {
+                  t.printStackTrace();
+                }
+                finally
+                {
+                  DB.safeClose(conn);
+                }
+
                 System.out.println(reply);
                 triggerUpdate(true);
                 last_block = block_height;
@@ -484,6 +526,7 @@ public class StratumServer
     private void triggerUpdate(boolean clean)
         throws Exception
     {
+        getEventLog().log("Update triggered. Clean: " + clean);
         System.out.println("Update triggered. Clean: " + clean);
 
         cached_block_template = null;
@@ -516,6 +559,7 @@ public class StratumServer
         }
         
         long t2_update_connection = System.currentTimeMillis();
+        getEventLog().log("Update Complete");
 
         getMetricsReporter().metricTime("UpdateConnectionsTime", t2_update_connection - t1_update_connection);
 
@@ -542,6 +586,7 @@ public class StratumServer
         
         StratumServer server = new StratumServer(conf);
 
+        server.setEventLog(new EventLog(conf));
         server.setInstanceId(conf.get("instance_id"));
         server.setMetricsReporter(new MetricsReporter(server));
 
@@ -589,14 +634,23 @@ public class StratumServer
         JSONObject c = cached_block_template;
         if (c != null) return c;
 
-        JSONObject post;
-        post = new JSONObject(bitcoin_rpc.getSimplePostRequest("getblocktemplate"));
-        c = bitcoin_rpc.sendPost(post).getJSONObject("result");
+        synchronized(block_template_lock)
+        {
+            c = cached_block_template;
+            if (c != null) return c;
 
-        cached_block_template=c;
+            JSONObject post;
+            post = new JSONObject(bitcoin_rpc.getSimplePostRequest("getblocktemplate"));
+            c = bitcoin_rpc.sendPost(post).getJSONObject("result");
 
-        getMetricsReporter().metricCount("getblocktemplate",1.0);
-        return c;
+            cached_block_template=c;
+
+            getEventLog().log("new block template: " + c.getLong("height"));
+
+            getMetricsReporter().metricCount("getblocktemplate",1.0);
+            return c;
+
+        }
 
     }
 

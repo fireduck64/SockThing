@@ -7,12 +7,20 @@ create table blocks
   time timestamp default now(),
   difficulty double,
   reward bigint,
+  size int,
   primary key (seq)
 ) engine innodb;
 create index blocks_hash_idx on blocks(hash);
 create index blocks_height_idx on blocks(height);
 create index blocks_time_idx_3 on blocks(time);
 create index blocks_confirmed_idx on blocks(confirmed);
+
+CREATE TABLE `block_discovery` (
+  `height` int(11) DEFAULT NULL,
+  `node` varchar(32) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  KEY `block_discovery_main_idx` (`height`,`created_at`)
+) ENGINE=InnoDB;
 
 create table payments
 (
