@@ -159,7 +159,10 @@ public class JobInfo
         String ntime = params.getString(3);
         String nonce = params.getString(4);
 
-        String submit_cannonical_string = params.getString(2) + params.getString(3) + params.getString(4);
+        String submit_cannonical_string = params.getString(2).trim() 
+          + params.getString(3).trim() 
+          + params.getString(4).trim();
+        submit_cannonical_string = submit_cannonical_string.toLowerCase();
         synchronized(submits)
         {
             if (submits.contains(submit_cannonical_string))
