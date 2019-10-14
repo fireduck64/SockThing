@@ -69,7 +69,7 @@ public class AddressDifficultyAuthHandler implements AuthHandler
 
     public boolean checkAddress(String addr)
     {
-        try
+        /*try
         {
             Address a = new Address(server.getNetworkParameters(), addr);
             return true;
@@ -77,7 +77,9 @@ public class AddressDifficultyAuthHandler implements AuthHandler
         catch(Exception e)
         {
             return false;
-        }
+        }*/
+
+        return true;
 
     }
 

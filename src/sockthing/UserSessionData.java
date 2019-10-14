@@ -11,8 +11,11 @@ public class UserSessionData
     /**
      * Hopefully the user is submitting shares and this keeping the interesting 
      * jobs in memory.
+     * This cache size ends up limiting the number of connections per user
+     * since we seem to generate new work per connection
+     * but store them all here
      */
-    private LRUCache<String, JobInfo> open_jobs = new LRUCache<String, JobInfo>(25);
+    private LRUCache<String, JobInfo> open_jobs = new LRUCache<String, JobInfo>(250);
 
     private AtomicLong next_job_id = new AtomicLong(0);
     private String job_session_str;

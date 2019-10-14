@@ -25,7 +25,8 @@ import java.sql.PreparedStatement;
 public class StratumServer
 {
     private BitcoinRPC bitcoin_rpc;
-    private long max_idle_time = 300L * 1000L * 1000L * 1000L;//5 minutes in nanos
+    private long max_idle_time = 86400L * 1000L * 1000L * 1000L;//1 day in nanos
+    //private long max_idle_time = 300L * 1000L * 1000L * 1000L;//5 minutes in nanos
     //private long max_idle_time = 3L * 1000L * 1000L * 1000L;//3 seconds
 
     
@@ -497,9 +498,13 @@ public class StratumServer
         throws Exception
     {
         String hexString = "0x" + getCurrentBlockTemplate().getString("bits");
+        //hexString="0x1d00ffff";
         Long hexInt = Long.decode(hexString).longValue();
 
+
         block_difficulty = difficultyFromHex(hexInt);
+
+        System.out.println("Block difficulty: " + block_difficulty + " " + hexString);
     }
 
     private void triggerUpdate(boolean clean)
@@ -591,7 +596,8 @@ public class StratumServer
             server.setNetworkParameters(NetworkParameters.testNet3());
         }
         
-        server.setOutputMonster(new OutputMonsterShareFees(conf, server.getNetworkParameters()));
+        //server.setOutputMonster(new OutputMonsterShareFees(conf, server.getNetworkParameters()));
+        server.setOutputMonster(new OutputMonsterSimple(conf, server.getNetworkParameters()));
 
         if (conf.getBoolean("witty_remarks_enabled"))
         {

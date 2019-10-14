@@ -20,6 +20,11 @@ import java.util.HashSet;
 
 public class JobInfo
 {
+    //public static final String BLOCK_VERSION_STR="00000004";
+    //public static final int BLOCK_VERSION=4;
+    //public static final String BLOCK_VERSION_STR="3fffe000";
+    //public static final int BLOCK_VERSION=1073733632;
+
     private NetworkParameters network_params;
     private StratumServer server;
     private String job_id;
@@ -30,6 +35,9 @@ public class JobInfo
     private Sha256Hash share_target;
     private double difficulty;
     private long value;
+
+    private int block_version;
+    private String block_version_str;
 
     private Coinbase coinbase;
 
@@ -51,6 +59,8 @@ public class JobInfo
 
         submits = new HashSet<String>();
 
+        this.block_version = block_template.getInt("version");
+        this.block_version_str = HexUtil.getIntAsHex(block_version);
 
         coinbase = new Coinbase(server, pool_user, height, BigInteger.valueOf(value), getFeeTotal(), extranonce1);
 
@@ -97,7 +107,7 @@ public class JobInfo
         }*/
 
 
-        String protocol="00000002";
+        String protocol=block_version_str;
         String diffbits=block_template.getString("bits");
         int ntime = (int)System.currentTimeMillis()/1000;
         String ntime_str= HexUtil.getIntAsHex(ntime);
@@ -218,7 +228,7 @@ public class JobInfo
             try
             {
                 StringBuilder header = new StringBuilder();
-                header.append("00000002");
+                header.append(block_version_str);
                 header.append(HexUtil.swapBytesInsideWord(HexUtil.swapEndianHexString(block_template.getString("previousblockhash"))));
                 header.append(HexUtil.swapBytesInsideWord(merkle_root.toString()));
                 header.append(ntime);
@@ -245,6 +255,11 @@ public class JobInfo
                 System.out.println("Found block hash: " + blockhash);
                 submit_result.hash = blockhash;
 
+                System.out.println("Block hash:   " + blockhash.toString());
+                System.out.println("Share target: " + share_target.toString());
+                System.out.println("Target:       " + block_template.getString("target"));
+
+
                 if (blockhash.toString().compareTo(share_target.toString()) < 0)
                 {
                     submit_result.our_result="Y";
@@ -258,7 +273,7 @@ public class JobInfo
                     return;
                 }
                 String upstream_result=null;
-                if (blockhash.toString().compareTo(block_template.getString("target")) < 0)
+                if (blockhash.toString().compareTo(block_template.getString("target")) <= 0)
                 {
                     submit_result.upstream_result
                     = buildAndSubmitBlock(params, merkle_root);
@@ -316,7 +331,7 @@ public class JobInfo
 
         Block block = new Block(
             network_params, 
-            2, 
+            block_version, 
             new Sha256Hash(block_template.getString("previousblockhash")),
             new Sha256Hash(HexUtil.swapEndianHexString(merkleRoot.toString())),
             time,
